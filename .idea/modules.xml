@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/android_accelreader/android_accelreader.iml" filepath="$PROJECT_DIR$/android_accelreader/android_accelreader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android_accelreader/app/app.iml" filepath="$PROJECT_DIR$/android_accelreader/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/standalonedataprocess/standalonedataprocess.iml" filepath="$PROJECT_DIR$/standalonedataprocess/standalonedataprocess.iml" />
+    </modules>
+  </component>
+</project>
