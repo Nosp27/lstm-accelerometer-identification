@@ -1,6 +1,10 @@
 package accelTest;
 
 import configWork.ConfigManager;
+import configWork.ConfigType;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.cpu.nativecpu.NDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.io.ClassPathResource;
 
 import java.io.*;
@@ -50,9 +54,12 @@ public class DataPrepare_ALT {
 
     static int fileNum = 0;
 
-    public static int generateEvalData(File rawData, float ratio, int batch, int offset, boolean deleteExisting) {
+    public static int generateEvalData(int label, File rawData, boolean deleteExisting) {
         if (deleteExisting)
             deleteAll();
+
+        int batch = Integer.parseInt(ConfigManager.loadProperty("cluster-size"));
+        float ratio = Integer.parseInt(ConfigManager.loadProperty("eval-ratio")) * 1.0f / 100f;
 
         int clustersCount = 0;
 
@@ -63,9 +70,9 @@ public class DataPrepare_ALT {
             }
         });
 
-        for (int i = offset; i < csvs.length; i++) {
+        for (int i = 0; i < csvs.length; i++) {
             try {
-                File f = new File(rawData, i + ".csv");
+                File f = csvs[i];
                 BufferedReader reader = new BufferedReader(new FileReader(f));
 
                 long lines = countLines(f);
@@ -78,8 +85,8 @@ public class DataPrepare_ALT {
                     FileWriter fwt = new FileWriter(ft);
                     FileWriter fwe = new FileWriter(fe);
 
-                    writeLabel(fileNum, i - offset, new File(baseDir, "e" + "\\labels"));
-                    writeLabel(fileNum, i - offset, new File(baseDir, "t" + "\\labels"));
+                    writeLabel(fileNum, label, new File(baseDir, "e" + "\\labels"));
+                    writeLabel(fileNum, label, new File(baseDir, "t" + "\\labels"));
 
                     fileNum++;
 
@@ -145,7 +152,7 @@ public class DataPrepare_ALT {
     static void writeLabel(int filenum, int i, File path) {
         try {
             FileWriter fw = new FileWriter(new File(path, filenum + ".csv"));
-            fw.write(Integer.toString(label));
+            fw.write(Integer.toString(i));
             fw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -261,22 +268,45 @@ public class DataPrepare_ALT {
         }
     }
 
+    public static INDArray getFeedableData(File f) throws IOException {
+        int clusterSize = Integer.parseInt(ConfigManager.loadProperty("cluster-size"));
+        int clusterCount = Math.toIntExact(countLines(f) / clusterSize);
+        INDArray data = Nd4j.zeros(clusterCount, 3, clusterSize);
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            for (int clusterNum = 0; clusterNum < clusterCount; clusterCount++)
+                for (int i = 0; i < clusterSize; i++) {
+                    String line = br.readLine();
+                    if (line == null)
+                        throw new IOException("Too few lines to fit cluster (size " + i + "), needed: " + clusterSize + ".");
+                    Scanner sc = new Scanner(line);
+                    sc.useLocale(Locale.ENGLISH);
+                    sc.useDelimiter(",");
+                    for (int k = 0; k < 3; k++)
+                        data.putScalar(clusterNum, k, i, sc.nextDouble());
+
+                    sc.close();
+                }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
     public static void reset() {
         fileNum = 0;
     }
 
-    static int label = 0;
-    static int clusterLimit = 2;
+    static int clusterLimit = 999;
 
     public static void main(String[] args) {
 //        convert("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer\\0.csv",
 //                "C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer\\sas");
 
-        label = 0;
-        generateEvalData(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer"), .8f, 500, 0, true);
+        clusterLimit = 4;
+        int clusters = generateEvalData(0, new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer"), true);
 
-        label = 1;
-        generateEvalData(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\downloadedDB"), .8f, 500, 1, false);
-
+        clusterLimit = clusters;
+        clusters += generateEvalData(1, new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\the_person"), false);
+        ConfigManager.saveProperty("clusters-num", Integer.toString(clusters), ConfigType.INT);
     }
 }

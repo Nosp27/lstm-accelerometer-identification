@@ -3,9 +3,11 @@ package com.cw.nosp.android_accel_reader;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -14,7 +16,6 @@ public class GUI extends AppCompatActivity {
     static Random rand = new Random();
 
     private boolean running = true;
-
     private ServiceControl sc;
 
     @Override
@@ -26,6 +27,7 @@ public class GUI extends AppCompatActivity {
         setStartStopClickListener();
         setEraseClickListener();
         setTransmitClickListener();
+        setIpFieldListener();
 
         sc = new ServiceControl();
         sc.initService(this, WriterService.class);
@@ -33,12 +35,40 @@ public class GUI extends AppCompatActivity {
         getLogThread().start();
     }
 
+    private void setIpFieldListener() {
+        final EditText ipEditor = findViewById(R.id.ip_input);
+        ipEditor.addTextChangedListener(new TextWatcher() {
+            String previousText;
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                previousText = charSequence.toString();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if(isValidIP(ipEditor.getText().toString())){
+
+                }
+            }
+
+            private boolean isValidIP(final String ip) {
+                String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
+                return ip.matches(PATTERN);
+            }
+        });
+    }
+
     public void bindCallback(final String msg) {
         if (msg.startsWith("connection")) {
             Runnable r = new Runnable() {
                 @Override
                 public void run() {
-                    (findViewById(R.id.transmit)).setVisibility(msg.endsWith("estabilished") ? View.VISIBLE : View.INVISIBLE);
+                    (findViewById(R.id.transmit)).setVisibility(msg.endsWith("established") ? View.VISIBLE : View.INVISIBLE);
                     ((TextView) findViewById(R.id.net_debug)).setText(msg);
                 }
             };
@@ -55,7 +85,7 @@ public class GUI extends AppCompatActivity {
                     return;
 
                 running = !running;
-                ((TextView) findViewById(R.id.startStop)).setText(running ? "Стой" : "Пиши");
+                ((TextView) findViewById(R.id.startStop)).setText(running ? "Suspend" : "Resume");
                 if (running)
                     sc.resume();
                 else sc.suspend();
@@ -78,7 +108,7 @@ public class GUI extends AppCompatActivity {
                 if (!requested) {
                     requested = true;
                     (findViewById(R.id.erase)).setBackgroundColor(Color.RED);
-                    ((TextView) (findViewById(R.id.erase))).setText("Вы уверены?");
+                    ((TextView) (findViewById(R.id.erase))).setText("Are you sure?");
 
                     new Thread(new Runnable() {
                         @Override
@@ -129,7 +159,7 @@ public class GUI extends AppCompatActivity {
                                 findViewById(R.id.textView2).post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        ((TextView) findViewById(R.id.textView2)).setText(String.format(Locale.ENGLISH, "Размер: %.1fkB", size));
+                                        ((TextView) findViewById(R.id.textView2)).setText(String.format(Locale.ENGLISH, "Size: %.1fkB", size));
                                     }
                                 });
                             }
@@ -144,5 +174,9 @@ public class GUI extends AppCompatActivity {
 
     String r(List<String> l) {
         return l.get(rand.nextInt(l.size()));
+    }
+
+    public interface ServerListener{
+        void onChangeIp(String newValidIp);
     }
 }

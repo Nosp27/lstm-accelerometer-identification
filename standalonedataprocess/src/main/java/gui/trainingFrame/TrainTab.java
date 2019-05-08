@@ -3,6 +3,8 @@ package gui.trainingFrame;
 import accelTest.LRNN;
 import configWork.ConfigManager;
 import gui.DesignControl;
+import gui.components.DesignedButton;
+import gui.components.DesignedPanel;
 import org.deeplearning4j.eval.Evaluation;
 
 import javax.swing.*;
@@ -11,17 +13,17 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
-public class TrainTab extends JPanel implements LRNN.TrainDataListener {
+public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
 
     LRNN net;
+    private JLabel trainingInfo;
     private JLabel statusLabel;
     private int epochNum = 0;
 
     public TrainTab() {
+        super("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\bg.jpg");
         setName("Train");
-        setLayout(new BorderLayout());
-
-        setBackground(Color.DARK_GRAY);
+        setLayout(new BorderLayout(15,15));
 
         initlayout();
     }
@@ -29,11 +31,20 @@ public class TrainTab extends JPanel implements LRNN.TrainDataListener {
     private void initlayout() {
         initButtons();
 
+        JPanel infoPanel = new JPanel(new GridLayout(4, 2, 15, 15));
+        infoPanel.setBackground(Color.DARK_GRAY);
+
+        trainingInfo = new JLabel();
+        trainingInfo.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
+        trainingInfo.setForeground(Color.WHITE);
+
         statusLabel = new JLabel("Status: disabled");
         statusLabel.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
         statusLabel.setForeground(Color.WHITE);
 
-        add(statusLabel);
+        infoPanel.add(statusLabel);
+        infoPanel.add(trainingInfo);
+        add(infoPanel,BorderLayout.CENTER);
     }
 
     private void initButtons() {
@@ -42,20 +53,20 @@ public class TrainTab extends JPanel implements LRNN.TrainDataListener {
         DesignControl.setTransparent(buttonsHolder);
 
         //stopBtn
-        JButton stopBtn = new JButton("Stop");
+        JButton stopBtn = new DesignedButton("Stop");
 
         //train btn
-        JButton trainBtn = new JButton("Train");
+        JButton trainBtn = new DesignedButton("Train");
 
         learningThread lt = new learningThread(trainBtn, stopBtn);
 
         stopBtn.addActionListener(e -> {
             stopBtn.setEnabled(false);
             lt.switchThread(true);
-            statusLabel.setText("Net saved");
+            trainingInfo.setText("Net saved");
         });
         trainBtn.addActionListener(e -> {
-            statusLabel.setText("Training...");
+            trainingInfo.setText("Training...");
             lt.start();
         });
 
@@ -78,6 +89,8 @@ public class TrainTab extends JPanel implements LRNN.TrainDataListener {
 
 
     private void setButtonPanelText(Evaluation e) {
+        if(trainingInfo.getText().endsWith("saved"))
+            return;
         String newLine = "<br>";
 
         String s = "";
@@ -89,7 +102,7 @@ public class TrainTab extends JPanel implements LRNN.TrainDataListener {
         s += "_____________" + newLine;
         s += "</html>";
 
-        statusLabel.setText(s);
+        trainingInfo.setText(s);
     }
 
     @Override
@@ -117,6 +130,7 @@ public class TrainTab extends JPanel implements LRNN.TrainDataListener {
             running = true;
             trainBtn.setEnabled(false);
             stopBtn.setEnabled(true);
+            statusLabel.setText("Status: running");
 
             if (net == null)
                 net = new LRNN();
@@ -130,7 +144,9 @@ public class TrainTab extends JPanel implements LRNN.TrainDataListener {
             });
 
             try {
-                net.saveNet(new File(ConfigManager.loadProperty("net-out"), "network-data.nnd"));
+                File f = new File(ConfigManager.loadProperty("net-out"), "network-data.nnd");
+                net.saveNet(f);
+                statusLabel.setText("Status: Net stopped. Saved to " + f.getName());
             } catch (IOException e) {
                 e.printStackTrace();
             }

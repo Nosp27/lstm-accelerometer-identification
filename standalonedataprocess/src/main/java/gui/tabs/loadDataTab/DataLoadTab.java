@@ -3,10 +3,15 @@ package gui.tabs.loadDataTab;
 import accelTest.DataPrepare_ALT;
 import configWork.ConfigManager;
 import gui.DesignControl;
+import gui.components.DesignedButton;
+import gui.components.DesignedLabel;
+import gui.components.DesignedPanel;
 import gui.graph.GraphRender;
+import gui.tabs.helpTab.HelpTab;
 import gui.tabs.loadDataTab.dataLoader.YReader;
 
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -39,9 +44,10 @@ public class DataLoadTab extends JPanel {
 
         createControls();
 
-        render = new GraphRender();
-        add(render, BorderLayout.CENTER);
+        add(new HelpTab(), BorderLayout.CENTER);
     }
+
+
 
     void createControls() {
 
@@ -55,22 +61,22 @@ public class DataLoadTab extends JPanel {
         buttonSide.setLayout(new BoxLayout(buttonSide, BoxLayout.Y_AXIS));
 
         //prepare data button
-        prepareBtn = new JButton("Prepare data");
+        prepareBtn = new DesignedButton("Prepare data");
         prepareBtn.setEnabled(false);
         prepareBtn.addActionListener(this::generateEvalData);
         prepareBtn.setEnabled(false);
 
         //add choose file button
-        chooseFileBtn = new JButton("Choose directory with your data...");
+        chooseFileBtn = new DesignedButton("Choose directory with your data...");
         chooseFileBtn.addActionListener(this::chooseFile);
 
         //add choose file button
-        chooseFileBtn2 = new JButton("Choose directory with others' data...");
+        chooseFileBtn2 = new DesignedButton("Choose directory with others' data...");
         chooseFileBtn2.setEnabled(false);
         chooseFileBtn2.addActionListener(this::chooseFile);
 
         //reset
-        resetBtn = new JButton("Reset");
+        resetBtn = new DesignedButton("Reset");
         resetBtn.addActionListener(e -> reset());
         resetBtn.setEnabled(false);
 
@@ -78,8 +84,11 @@ public class DataLoadTab extends JPanel {
         DesignControl.setTransparent(buttonSide);
 
         buttonSide.add(chooseFileBtn);
+        buttonSide.add(Box.createVerticalStrut(10));
         buttonSide.add(chooseFileBtn2);
+        buttonSide.add(Box.createVerticalStrut(10));
         buttonSide.add(prepareBtn);
+        buttonSide.add(Box.createVerticalStrut(10));
         buttonSide.add(resetBtn);
 
 
@@ -90,8 +99,8 @@ public class DataLoadTab extends JPanel {
     private void generateEvalData(ActionEvent e) {
         new Thread(() -> {
             prepareBtn.setEnabled(false);
-            DataPrepare_ALT.generateEvalData(targetDirectory, .8f, 2000, 0, true);
-            DataPrepare_ALT.generateEvalData(targetDirectory2, .8f, 2000, 0, false);
+            DataPrepare_ALT.generateEvalData(0, targetDirectory, true);
+            DataPrepare_ALT.generateEvalData(1, targetDirectory2, false);
             reset();
         }).start();
     }

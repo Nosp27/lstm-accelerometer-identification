@@ -30,7 +30,7 @@ public class ConfigManager {
         }
     }
 
-    public static void configSave() {
+    private static void configSave() {
         try (FileWriter writer = new FileWriter(configPath)) {
             for (Property p : properties.values()) {
                 writer.write(p.toString());
@@ -57,5 +57,6 @@ public class ConfigManager {
         Property p = new Property(name, value, ct);
         properties.put(p.name, p);
         System.out.println("Set property " + name + " = " + value);
+        configSave();
     }
 }

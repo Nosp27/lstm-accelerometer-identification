@@ -5,6 +5,8 @@ import configWork.ConfigManager;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.Vector;
 
 public class ServerWriter {
     ServerSocket ss;
@@ -12,7 +14,9 @@ public class ServerWriter {
 
     int fileCounter = 0;
 
-    private IListenServer serverModelAccessor;
+    Vector<File> writtenFiles = new Vector<>();
+    private IServerDataAccessor serverModelAccessor;
+    private ICallbackServer serverListener;
 
     private ServerWriter() {
         serverThread.start();
@@ -46,14 +50,15 @@ public class ServerWriter {
                 System.out.println("read class line");
 
                 switch (classLine) {
-                    case "str":
+                    case "str"://echo
                         System.out.println("got message:");
                         System.out.println(r.readLine());
                         break;
                     case "file":
                         System.out.println("got file");
                         String dir = ConfigManager.loadProperty("loaded-data");
-                        FileOutputStream fileOut = new FileOutputStream(new File(dir, "" + fileCounter++ + ".csv"));
+                        File destinationFile = new File(dir, "" + getFileCounter(new File(dir)) + ".csv");
+                        FileOutputStream fileOut = new FileOutputStream(destinationFile);
 
                         String line = r.readLine();
                         do {
@@ -61,6 +66,10 @@ public class ServerWriter {
                                 break;
                             fileOut.write((line + "\n").getBytes());
                         } while ((line = r.readLine()) != null);
+                        fileOut.close();
+
+                        writtenFiles.add(destinationFile);
+                        serverListener.onFileRecieved(destinationFile);//send message
                         break;
                     default:
                         System.out.println("got strange class message:");
@@ -74,8 +83,17 @@ public class ServerWriter {
         }
     }
 
-    public static IListenServer createServer() {
-        return new ServerWriter().getModelAccess();
+    private int getFileCounter(File dir) {
+        while (new File(dir, fileCounter + ".csv").exists())
+            fileCounter++;
+        return fileCounter;
+    }
+
+    public static IServerDataAccessor createServer(ICallbackServer serverListener) {
+        ServerWriter sw = new ServerWriter();
+        sw.serverListener = serverListener;
+
+        return sw.getModelAccess();
     }
 
     Thread serverThread = new Thread(() -> {
@@ -91,7 +109,7 @@ public class ServerWriter {
     });
 
     private void initServerModelAccessor() {
-        serverModelAccessor = new IListenServer() {
+        serverModelAccessor = new IServerDataAccessor() {
             @Override
             public String getClientinfo() {
                 String newline = "<br>";
@@ -115,6 +133,11 @@ public class ServerWriter {
                 return s;
             }
 
+            @Override
+            public List<File> getSavedFiles() {
+                return writtenFiles;
+            }
+
             private String getServerState() {
                 if (ss == null) return "is null";
                 if (ss.isBound()) return "is bound";
@@ -123,21 +146,27 @@ public class ServerWriter {
             }
 
             private String getConnectionState() {
-                return (clientSocket != null ? (clientSocket.isConnected() ? "estabilished" : "disconnected") : "not found");
+                return (clientSocket != null ? (clientSocket.isConnected() ? "established" : "disconnected") : "not found");
             }
         };
     }
 
-    public IListenServer getModelAccess() {
+    public IServerDataAccessor getModelAccess() {
         if (serverModelAccessor == null)
             initServerModelAccessor();
         return serverModelAccessor;
     }
 
-    public interface IListenServer {
+    public interface IServerDataAccessor {
         String getClientinfo();
 
         String getServerInfo();
+
+        List<File> getSavedFiles();
+    }
+
+    public interface ICallbackServer {
+        void onFileRecieved(File f);
     }
 
     public static void main(String[] args) {

@@ -7,8 +7,9 @@ import java.util.Vector;
 /**
  * Class provides opportunity to transfer files to server via internet
  */
-public class DataTransmitter implements Transmitter {
+public class DataTransmitter implements Transmitter, GUI.ServerListener {
     private volatile Socket clientSocket;
+    private String ipAddressString = "192.168.1.156";
 
     //for callback
     private volatile ClientListener l;
@@ -20,12 +21,23 @@ public class DataTransmitter implements Transmitter {
     private Thread connectionThread = new Thread(new Runnable() {
         @Override
         public void run() {
+            connect();
+        }
+    }, "CT");
+
+    //thread is responsible for data transmission
+    private Thread transmissionThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            rollTransmission();
+        }
+    }, "TT");
+
+    //region runnables for threads
+    private void connect() {
+        try {
             do {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Thread.sleep(2000);
             } while (!tryFindServer());
 
             synchronized (DataTransmitter.this) {
@@ -35,7 +47,7 @@ public class DataTransmitter implements Transmitter {
 
             while (true) {
                 try {
-                    synchronized (this) {
+                    synchronized (DataTransmitter.this) {
                         InputStream in = clientSocket.getInputStream();
                         if (in.available() > 0) {
                             l.onDataRecieved(in);
@@ -45,70 +57,71 @@ public class DataTransmitter implements Transmitter {
                     e.printStackTrace();
                 }
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-    }, "CT");
+    }
 
-    //thread is responsible for data transmission
-    private Thread transmissionThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            synchronized (DataTransmitter.this) {
-                try {
-                    while (true) {
-                        if (clientSocket == null)
-                            DataTransmitter.this.wait();
+    private void rollTransmission() {
+        synchronized (DataTransmitter.this) {
+            try {
+                while (true) {
+                    if (clientSocket == null && !(clientSocket.isConnected() && clientSocket.isBound()))
+                        DataTransmitter.this.wait();
 
-                        final FileReader in;
+                    final FileReader in;
 
-                        if (q.size() == 0) {
-                            DataTransmitter.this.wait();
-                        }
-
-                        String filename = q.get(0);
-                        q.remove(0);
-
-                        try {
-                            in = new FileReader(new File(filename));
-                        } catch (FileNotFoundException e) {
-                            return;
-                        }
-
-                        final OutputStream out = clientSocket.getOutputStream();
-                        BufferedReader r = new BufferedReader(in);
-
-                        out.write("file\n".getBytes());
-
-                        String _line;
-
-                        while ((_line = r.readLine()) != null)
-                            out.write((_line + "\n").getBytes());
-
-
-                        out.write("end\n".getBytes());
+                    if (q.size() == 0) {
+                        DataTransmitter.this.wait();
                     }
-                } catch (IOException e) {
-                    l.onDisconnect();
-                } catch (InterruptedException e) {
+
+                    String filename = q.get(0);
+                    q.remove(0);
+
+                    try {
+                        in = new FileReader(new File(filename));
+                    } catch (FileNotFoundException e) {
+                        return;
+                    }
+
+                    final OutputStream out = clientSocket.getOutputStream();
+                    BufferedReader r = new BufferedReader(in);
+
+                    out.write("file\n".getBytes());
+
+                    String _line;
+
+                    while ((_line = r.readLine()) != null)
+                        out.write((_line + "\n").getBytes());
+
+
+                    out.write("end\n".getBytes());
                 }
+            } catch (IOException e) {
+                l.onDisconnect();
+            } catch (InterruptedException e) {
             }
         }
-    }, "TT");
+    }
 
     /**
      * tries to connect to server
+     *
      * @return boolean, representing the result of connection attempt
      */
     private synchronized boolean tryFindServer() {
         try {
-            clientSocket = new Socket("192.168.1.156", 5000);
+            clientSocket = new Socket(ipAddressString, 5000);
             return true;
         } catch (IOException e) {
             return false;
         }
     }
+    //endregion
 
     /**
      * constructor. creates network client and adds client listener
+     *
      * @param l listener
      */
     public DataTransmitter(ClientListener l) {
@@ -119,6 +132,7 @@ public class DataTransmitter implements Transmitter {
     /**
      * method begins transmission if it is not running already and
      * adds next filename to transmitter queue
+     *
      * @param line filename
      * @return string, representing result of operation
      */
@@ -134,6 +148,18 @@ public class DataTransmitter implements Transmitter {
         return "usual success";
     }
 
+    @Override
+    public void onChangeIp(String newValidIp) {
+        if (clientSocket.isConnected()) {
+            try {
+                clientSocket.close();
+                ipAddressString = newValidIp;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * interface for callback-based interaction with client
      */
@@ -143,7 +169,6 @@ public class DataTransmitter implements Transmitter {
         void onDisconnect();
 
         void onDataRecieved(InputStream in);
-
     }
 
     public static void main(String[] args) {

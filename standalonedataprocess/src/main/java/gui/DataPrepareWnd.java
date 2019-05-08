@@ -1,5 +1,7 @@
 package gui;
 
+import gui.components.DesignedButton;
+import gui.components.DesignedPanel;
 import gui.configs.ConfigFrame;
 import gui.tabs.loadDataTab.DataLoadTab;
 import gui.tabs.serverControlTab.ServerControlTab;
@@ -15,12 +17,14 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
     //load, train, remote
     ArrayList<JPanel> tabs;
 
-    Dimension screen;
-    JPanel holderPanel;
-    CardLayout tabHolder;
     File learningDataDirectory;
 
     ConfigFrame configs = new ConfigFrame();
+    Dimension screen;
+    JPanel holderPanel;
+    CardLayout tabHolder;
+    JPanel mainPanel;
+    JPanel infoPanel;
 
     public DataPrepareWnd() {
         setName("Server Window");
@@ -30,14 +34,25 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(new Dimension(screen.width / 2, screen.height / 2));
 
-        getContentPane().setLayout(new BorderLayout(20, 30));
+        getContentPane().setLayout(new BorderLayout());
+
         tabHolder = new CardLayout();
-        getContentPane().add((holderPanel = new JPanel(tabHolder)), BorderLayout.CENTER);
+        holderPanel = new DesignedPanel();
+
+        mainPanel = new DesignedPanel("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\bg.jpg");
+        mainPanel.setLayout(new BorderLayout());
+        holderPanel.setLayout(tabHolder);
+        mainPanel.add(holderPanel, BorderLayout.CENTER);
+
+        infoPanel = new JPanel(new GridLayout(1, 3, 20, 20));
+
 
         initTabs();
 
         createMenu();
 
+        add(infoPanel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
         setVisible(true);
     }
 
@@ -47,7 +62,7 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
         //Settings
         menu = new JMenu("Settings");
         JMenuItem config = menu.add("Config");
-        config.addActionListener(e->configs.setVisible(true));
+        config.addActionListener(e -> configs.setVisible(true));
         menubar.add(menu);
 
         //Tabs
@@ -56,7 +71,7 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
         createTabMenuItems(menu);
 
 
-        add(menubar, BorderLayout.NORTH);
+        mainPanel.add(menubar, BorderLayout.NORTH);
     }
 
     private void initTabs() {
@@ -66,14 +81,14 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
         tabs.add(new ServerControlTab());
 
         for (JPanel t : tabs) {
-            tabHolder.addLayoutComponent(t, t.getName());
             holderPanel.add(t);
+            tabHolder.addLayoutComponent(t, t.getName());
         }
     }
 
     private void createTabMenuItems(JMenu menu) {
         for (int i = 0; i < tabs.size(); i++) {
-            JButton btn = new JButton();
+            DesignedButton btn = new DesignedButton();
             JPanel t = tabs.get(i);
 
             btn.setText(t.getName());

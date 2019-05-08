@@ -6,9 +6,13 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 
+/**
+ * This class provides service control.
+ * Used for launching, stopping, binding and suspending/resuming the background service, that writes accelerometer data
+ */
 public class ServiceControl implements LogLostener {
     private WriterService service;
-    GUI theActivity;
+    private GUI theActivity;
 
     public void initService(GUI activity, Class<?> serviceClass) {
         theActivity = activity;
