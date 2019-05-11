@@ -1,8 +1,6 @@
 package gui.tabs.serverControlTab;
 
-import accelTest.DataPrepare_ALT;
-import accelTest.LRNN;
-import configWork.ConfigManager;
+import accelTest.DataFeeding;
 import gui.DesignControl;
 import gui.components.DesignedButton;
 import server.ServerWriter;
@@ -11,13 +9,12 @@ import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
 
 public class ServerControlTab extends JPanel implements ServerWriter.ICallbackServer, DataFeeding.DataFeedListener {
     private JLabel serverInfo;
     private JLabel clientInfo;
-    private JLabel dataFeedInfoLabel;
+    private DataFeedTab dataFeedTab;
 
     private boolean isFeeding = false;
 
@@ -27,6 +24,7 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
 
     public ServerControlTab() {
         setName("Remote");
+        dataFeeder.setListener(this);
         serverDataAccess = ServerWriter.createServer(this);
 
         DesignControl.setTransparent(this);
@@ -36,8 +34,8 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
 
         clientInfo = createLabel(Color.DARK_GRAY, 15, Color.WHITE, this);
 
-        dataFeedInfoLabel = createLabel(Color.DARK_GRAY, 15, Color.WHITE, this);
-        dataFeedInfoLabel.setForeground(Color.WHITE);
+        dataFeedTab = new DataFeedTab(this::onFileRecieved);
+        add(dataFeedTab);
 
         addFeedSwitch();
 
@@ -67,9 +65,10 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
 
         JButton feed = new DesignedButton("Recognition mode");
         JButton train = new DesignedButton("Learning mode");
+        train.setEnabled(false);
 
         feed.addActionListener(e -> feedSwitchActionListener(true, feed, train));
-
+        train.addActionListener(e -> feedSwitchActionListener(false, feed, train));
         feedSwitch.add(feed);
         feedSwitch.add(train);
         add(feedSwitch);
@@ -79,6 +78,7 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
         isFeeding = _feed;
         feed.setEnabled(!_feed);
         train.setEnabled(_feed);
+        dataFeedTab.setFeedMode(_feed);
     }
 
     private void startMonitoringData() {
@@ -108,6 +108,11 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
 
     @Override
     public void calculatedResult(Vector<Double> result) {
-        dataFeedInfoLabel.setText("Calculated: " + result.lastElement());
+        String message;
+        if (result == null) {
+            message = "Error occured during identification process!";
+        } else
+            message = "Calculated: " + result.lastElement();
+        dataFeedTab.setResult(result);
     }
 }

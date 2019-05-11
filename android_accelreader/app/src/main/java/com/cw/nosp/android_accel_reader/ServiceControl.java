@@ -10,9 +10,9 @@ import android.os.IBinder;
  * This class provides service control.
  * Used for launching, stopping, binding and suspending/resuming the background service, that writes accelerometer data
  */
-public class ServiceControl implements LogLostener {
+public class ServiceControl {
     private WriterService service;
-    private GUI theActivity;
+    private LogListener theActivity;
 
     public void initService(GUI activity, Class<?> serviceClass) {
         theActivity = activity;
@@ -43,8 +43,8 @@ public class ServiceControl implements LogLostener {
             public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
                 WriterService.LocalBinder lb = (WriterService.LocalBinder) iBinder;
                 service = lb.get();
-                service.setLog(ServiceControl.this);
-                theActivity.bindCallback("Служба привязана");
+                service.setLog(theActivity);
+                theActivity.log("Service is bound\n");
             }
 
             @Override
@@ -58,16 +58,17 @@ public class ServiceControl implements LogLostener {
         service.deleteFiles();
     }
 
-    @Override
-    public synchronized void log(String s) {
-        theActivity.bindCallback(s);
-    }
-
     public void transmitData() {
         service.transmitData();
     }
+
+    public void changeIpAddress(String newAddress){
+        service.changeIp(newAddress);
+    }
 }
 
-interface LogLostener{
+interface LogListener {
     void log(String s);
+    void onChangedIp();
+    void onRunningModeChanged(boolean newRunning);
 }

@@ -28,7 +28,8 @@ public class Property {
     private void checkPropertyCorrect() throws IllegalArgumentException {
         switch (type) {
             case PATH:
-                if (!new File(value).exists())
+                File f = new File(value);
+                if (f.isDirectory() && !f.exists())
                     throw new IllegalArgumentException();
                 break;
             case INT:

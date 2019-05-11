@@ -10,6 +10,9 @@ import gui.trainingFrame.TrainTab;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderListener {
@@ -19,7 +22,7 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
 
     File learningDataDirectory;
 
-    ConfigFrame configs = new ConfigFrame();
+    ConfigFrame configs;
     Dimension screen;
     JPanel holderPanel;
     CardLayout tabHolder;
@@ -27,33 +30,47 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
     JPanel infoPanel;
 
     public DataPrepareWnd() {
-        setName("Server Window");
-        DesignControl.setBackgroundImage(this);
-        screen = Toolkit.getDefaultToolkit().getScreenSize();
+        try {
+            configs = new ConfigFrame();
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(new Dimension(screen.width / 2, screen.height / 2));
+            try {
+                File f = new File("log.log");
+                f.createNewFile();
+                System.setOut(new PrintStream(f));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        getContentPane().setLayout(new BorderLayout());
+            setTitle("Neural net processing");
+            screen = Toolkit.getDefaultToolkit().getScreenSize();
 
-        tabHolder = new CardLayout();
-        holderPanel = new DesignedPanel();
+            System.out.println("1");
+            setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            setSize(new Dimension(screen.width / 2, screen.height / 2));
 
-        mainPanel = new DesignedPanel("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\bg.jpg");
-        mainPanel.setLayout(new BorderLayout());
-        holderPanel.setLayout(tabHolder);
-        mainPanel.add(holderPanel, BorderLayout.CENTER);
+            getContentPane().setLayout(new BorderLayout());
 
-        infoPanel = new JPanel(new GridLayout(1, 3, 20, 20));
+            tabHolder = new CardLayout();
+            holderPanel = new DesignedPanel();
+            System.out.println("2");
+            mainPanel = new DesignedPanel(DesignedPanel.BG);
+            mainPanel.setLayout(new BorderLayout());
+            holderPanel.setLayout(tabHolder);
+            mainPanel.add(holderPanel, BorderLayout.CENTER);
+            System.out.println("3");
+            infoPanel = new JPanel(new GridLayout(1, 3, 20, 20));
 
-
-        initTabs();
-
-        createMenu();
-
-        add(infoPanel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
-        setVisible(true);
+            System.out.println("4");
+            initTabs();
+            System.out.println("5");
+            createMenu();
+            System.out.println("6");
+            add(infoPanel, BorderLayout.NORTH);
+            add(mainPanel, BorderLayout.CENTER);
+            setVisible(true);
+        } catch (Throwable e){
+            e.printStackTrace(System.out);
+        }
     }
 
     private void createMenu() {
@@ -77,12 +94,16 @@ public class DataPrepareWnd extends JFrame implements DataLoadTab.DataLoaderList
     private void initTabs() {
         tabs = new ArrayList<>();
         tabs.add(new DataLoadTab(this));
+        System.out.println("data tab ready");
         tabs.add(new TrainTab());
+        System.out.println("train tab ready");
         tabs.add(new ServerControlTab());
+        System.out.println("server tab ready");
 
         for (JPanel t : tabs) {
             holderPanel.add(t);
             tabHolder.addLayoutComponent(t, t.getName());
+            System.out.println("added " + t.getName());
         }
     }
 

@@ -1,30 +1,31 @@
 package gui.components;
 
+import gui.DataPrepareWnd;
+import javafx.scene.layout.Background;
+import sun.security.krb5.internal.crypto.Des;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 public class DesignedPanel extends JPanel {
-    private BufferedImage img;
-    public DesignedPanel(Color bg){
+    public static final String BG = "/bg.jpg";
+    public static final String BG2 = "/bg2.jpg";
+    private Image img;
+
+    public DesignedPanel(Color bg) {
         super();
         setBackground(bg);
     }
 
-    public DesignedPanel(String imgPath) {
+    public DesignedPanel(String bgPath) {
         super();
-        try {
-            img = ImageIO.read(new File(imgPath));
-        } catch (IOException e) {
-            img = null;
-            setBackground(Color.DARK_GRAY);
-        }
+        this.img = getBackgroundImage(bgPath);
     }
 
-    public DesignedPanel(){
+    public DesignedPanel() {
         super();
         setBackground(Color.DARK_GRAY);
     }
@@ -32,7 +33,7 @@ public class DesignedPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if(img == null)
+        if (img == null)
             return;
 
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -41,5 +42,18 @@ public class DesignedPanel extends JPanel {
         int h = screen.height;
 
         g.drawImage(img, 0, 0, w, h, null);
+    }
+
+    public static Image getBackgroundImage(String path){
+        Image img;
+        try {
+            img = ImageIO.read(DesignedPanel.class.getResourceAsStream(path));
+            return img;
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -4,47 +4,55 @@ import accelTest.LRNN;
 import configWork.ConfigManager;
 import gui.DesignControl;
 import gui.components.DesignedButton;
+import gui.components.DesignedLabel;
 import gui.components.DesignedPanel;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import sun.misc.Lock;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
 public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
 
-    LRNN net;
-    private JLabel trainingInfo;
+    private final Boolean netLock = true;//sync object
+    volatile LRNN net;
+    volatile boolean netCleared;
+
+    private JLabel trainingLabel;
     private JLabel statusLabel;
+    private JLabel netInfo;
     private int epochNum = 0;
 
+    JButton resetBtn;
+
     public TrainTab() {
-        super("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\bg.jpg");
+        super(DesignedPanel.BG);
         setName("Train");
-        setLayout(new BorderLayout(15,15));
+        setLayout(new BorderLayout(15, 15));
 
         initlayout();
     }
 
     private void initlayout() {
+        System.out.println("train tab layout");
         initButtons();
-
-        JPanel infoPanel = new JPanel(new GridLayout(4, 2, 15, 15));
+        System.out.println("train tab init buttons complete");
+        JPanel infoPanel = new JPanel(new GridLayout(2, 2, 15, 15));
         infoPanel.setBackground(Color.DARK_GRAY);
 
-        trainingInfo = new JLabel();
-        trainingInfo.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        trainingInfo.setForeground(Color.WHITE);
+        trainingLabel = new DesignedLabel();
 
-        statusLabel = new JLabel("Status: disabled");
-        statusLabel.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        statusLabel.setForeground(Color.WHITE);
+        statusLabel = new DesignedLabel("Status: disabled");
+
+        netInfo = new DesignedLabel("Neural network info");
 
         infoPanel.add(statusLabel);
-        infoPanel.add(trainingInfo);
-        add(infoPanel,BorderLayout.CENTER);
+        infoPanel.add(trainingLabel);
+        infoPanel.add(netInfo);
+        add(infoPanel, BorderLayout.CENTER);
     }
 
     private void initButtons() {
@@ -58,38 +66,67 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
         //train btn
         JButton trainBtn = new DesignedButton("Train");
 
+        System.out.println("learning thread launch");
         learningThread lt = new learningThread(trainBtn, stopBtn);
+        System.out.println("learning thread launch complete");
 
         stopBtn.addActionListener(e -> {
             stopBtn.setEnabled(false);
             lt.switchThread(true);
-            trainingInfo.setText("Net saved");
+            trainingLabel.setText("Net saved");
         });
         trainBtn.addActionListener(e -> {
-            trainingInfo.setText("Training...");
-            lt.start();
+            trainingLabel.setText("Training...");
+            if (lt.getState() == Thread.State.NEW)
+                lt.start();
+            else lt.switchThread(false);
         });
+
+        String net_outPath = ConfigManager.loadProperty("net-out");
+        resetBtn = new DesignedButton("Reset");
+        resetBtn.addActionListener(e -> {
+            new Thread(() -> {
+                synchronized (netLock) {
+                    if (net != null) net.getNet().clear();
+                    new File(net_outPath).delete();
+                    statusLabel.setText("Network resets");
+                    epochNum = 0;
+                    resetBtn.setEnabled(false);
+                }
+            }).start();
+        });
+        resetBtn.setEnabled(new File(net_outPath).exists());
 
         DesignControl.setTransparent(buttonsHolder);
 
         buttonsHolder.add(trainBtn);
+        buttonsHolder.add(Box.createVerticalStrut(10));
         buttonsHolder.add(stopBtn);
+        buttonsHolder.add(Box.createVerticalStrut(30));
+        buttonsHolder.add(resetBtn);
         add(buttonsHolder, BorderLayout.WEST);
     }
 
-    void createSlider(String name, ChangeListener l) {
-        JPanel container = new JPanel();
-        container.setLayout(new FlowLayout());
+    private String getNetInfo(MultiLayerNetwork network, File loadedFrom) {
+        String s = "";
+        s += "<html>";
+        if (loadedFrom != null)
+            s += "Network loaded from .../" + loadedFrom.getName() + "<br>";
+        s += "Neural network configuration:<br>" +
+                "Layers: " + network.getnLayers() + "<br>" +
+                "Neurons: <br>" +
+                "Input size: " + network.layerInputSize(0) + "<br>";
 
-        JSlider s = new JSlider();
-        s.addChangeListener(l);
-        container.add(new JLabel(name + ": "));
-        container.add(s);
+        for (int i = 0; i < network.getnLayers() - 2; i++)
+            s += "Hidden layer " + (i + 1) + " size: " + network.layerInputSize(i + 1) + "<br>";
+
+        s += "Output layer size: " + network.layerSize(2) + "<br>";
+        s += "</html>";
+        return s;
     }
 
-
     private void setButtonPanelText(Evaluation e) {
-        if(trainingInfo.getText().endsWith("saved"))
+        if (trainingLabel.getText().endsWith("saved"))
             return;
         String newLine = "<br>";
 
@@ -102,7 +139,7 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
         s += "_____________" + newLine;
         s += "</html>";
 
-        trainingInfo.setText(s);
+        trainingLabel.setText(s);
     }
 
     @Override
@@ -130,29 +167,60 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
             running = true;
             trainBtn.setEnabled(false);
             stopBtn.setEnabled(true);
-            statusLabel.setText("Status: running");
 
-            if (net == null)
-                net = new LRNN();
-
-            epochNum = 0;
-            net.trainNet(TrainTab.this, new IStopLearning() {
-                @Override
-                public boolean stopped() {
-                    return !running;
+            File loadedFrom = new File(ConfigManager.loadProperty("net-out"));
+            synchronized (netLock) {
+                if (net == null) {
+                    net = new LRNN();
+                    try {
+                        net.loadNet(loadedFrom);
+                    } catch (IOException e) {
+                        loadedFrom = null;
+                    }
+                    netInfo.setText(getNetInfo(net.getNet(), loadedFrom));
                 }
-            });
-
-            try {
-                File f = new File(ConfigManager.loadProperty("net-out"), "network-data.nnd");
-                net.saveNet(f);
-                statusLabel.setText("Status: Net stopped. Saved to " + f.getName());
-            } catch (IOException e) {
-                e.printStackTrace();
             }
 
-            trainBtn.setEnabled(true);
-            stopBtn.setEnabled(false);
+            epochNum = 0;
+            while (true) {
+                synchronized (netLock) {
+                    if(loadedFrom != null && !loadedFrom.exists())
+                        loadedFrom = null;
+
+                    if (loadedFrom != null)
+                        statusLabel.setText("Status: loaded from .../" + loadedFrom.getName() + ", running");
+                    else statusLabel.setText("Status: running");
+
+                    net.trainNet(TrainTab.this, new IStopLearning() {
+                        @Override
+                        public boolean stopped() {
+                            return !running;
+                        }
+                    });
+
+                    try {
+                        loadedFrom = new File(ConfigManager.loadProperty("net-out"));
+                        net.saveNet(loadedFrom);
+                        statusLabel.setText("Status: Net stopped. Saved to " + loadedFrom.getName());
+                    } catch (IOException e) {
+                        statusLabel.setText("Status: Net stopped. Saving to " + loadedFrom.getName() + " aborted");
+                        loadedFrom = null;
+                    }
+                    resetBtn.setEnabled(true);
+                }
+
+                trainBtn.setEnabled(true);
+                stopBtn.setEnabled(false);
+
+                try {
+                    while (!running)
+                        Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                trainBtn.setEnabled(false);
+                stopBtn.setEnabled(true);
+            }
         }
     }
 

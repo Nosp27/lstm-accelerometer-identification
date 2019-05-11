@@ -3,9 +3,7 @@ package accelTest;
 import configWork.ConfigManager;
 import configWork.ConfigType;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.io.ClassPathResource;
 
 import java.io.*;
 import java.util.*;
@@ -18,8 +16,6 @@ public class DataPrepare_ALT {
 
     static int counter = 0;
     static long fixedDelay = Integer.parseInt(ConfigManager.loadProperty("fixed-time-interval"));
-
-    private static String baseDir = ConfigManager.loadProperty("net-in");
 
     private static Double[] normalize(Double[] in, Long delay, Double[] out) {
         if (delay < fixedDelay * 0.7f)
@@ -35,47 +31,46 @@ public class DataPrepare_ALT {
         return grad;
     }
 
-    private static int countMinimal() {
-        int min = Integer.MAX_VALUE;
-        for (int i = 1; i <= 36; i++) {
-            try (BufferedReader br = new BufferedReader(new FileReader(baseDir + i + ".csv"))) {
-                int k = 0;
-                while (br.readLine() != null)
-                    k++;
-
-                if (k < min)
-                    min = k;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return min;
-    }
-
     static int fileNum = 0;
 
-    public static int generateEvalData(int label, File rawData, boolean deleteExisting) {
+    public static int[] generateEvalData(int label1, int label2, File rawData1, File rawData2, boolean deleteExisting) {
+        if (ConfigManager.loadProperty("file-limit").equals("1")) {
+            try {
+                long cs1 = countLines(rawData1, true);
+                long cs2 = countLines(rawData1, true);
+
+                clusterLimit = (int) (Math.min(cs1, cs2) / Integer.parseInt(ConfigManager.loadProperty("cluster-size")));
+            } catch (IOException e) {
+            }
+        } else clusterLimit = Integer.MAX_VALUE;
+
+        int[] clusterNums = {
+                generateEvalData0(label1, rawData1, deleteExisting),
+                generateEvalData0(label2, rawData2, false)};
+
+        ConfigManager.saveProperty("clusters-num", Integer.toString(clusterNums[0] + clusterNums[1]), ConfigType.INT);
+        return clusterNums;
+    }
+
+    private static int generateEvalData0(int label, File rawData, boolean deleteExisting) {
+        String baseDir = ConfigManager.loadProperty("net-in");
+
         if (deleteExisting)
-            deleteAll();
+            deleteAll(baseDir);
 
         int batch = Integer.parseInt(ConfigManager.loadProperty("cluster-size"));
         float ratio = Integer.parseInt(ConfigManager.loadProperty("eval-ratio")) * 1.0f / 100f;
 
         int clustersCount = 0;
 
-        File[] csvs = rawData.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.endsWith("csv");
-            }
-        });
+        File[] csvs = rawData.listFiles((dir, name) -> name.endsWith(".csv"));
 
         for (int i = 0; i < csvs.length; i++) {
             try {
                 File f = csvs[i];
                 BufferedReader reader = new BufferedReader(new FileReader(f));
 
-                long lines = countLines(f);
+                long lines = countLines(f, false);
 
                 int limit = batch;
                 while (limit < lines && clustersCount < clusterLimit) {
@@ -90,14 +85,12 @@ public class DataPrepare_ALT {
 
                     fileNum++;
 
-                    long _size = batch;
-
-                    long l = 0;
-                    for (; l < _size * ratio; l++) {
+                    int l = 0;
+                    for (; l < batch * ratio; l++) {
                         fwt.write(reader.readLine() + "\n");
                     }
 
-                    for (; l < _size; l++) {
+                    for (; l < batch; l++) {
                         fwe.write(reader.readLine() + "\n");
                     }
 
@@ -108,7 +101,6 @@ public class DataPrepare_ALT {
                     clustersCount++;
                 }
                 reader.close();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -117,7 +109,7 @@ public class DataPrepare_ALT {
         return clustersCount;
     }
 
-    private static void deleteAll() {
+    private static void deleteAll(String baseDir) {
         File t = new File(baseDir, "t");
         File e = new File(baseDir, "e");
 
@@ -138,9 +130,24 @@ public class DataPrepare_ALT {
             for (File f : childFiles)
                 f.delete();
         }
+        reset();
     }
 
-    static long countLines(File f) throws IOException {
+    static long countLines(File f, boolean isDir) throws IOException {
+        if (isDir) {
+            File[] children = f.listFiles();
+            long count = 0;
+            for (File child : children) {
+                BufferedReader reader = new BufferedReader(new FileReader(child));
+
+                while (reader.readLine() != null)
+                    count++;
+                reader.close();
+            }
+
+            return count;
+        }
+
         BufferedReader reader = new BufferedReader(new FileReader(f));
         long count = 0;
         while (reader.readLine() != null)
@@ -269,44 +276,35 @@ public class DataPrepare_ALT {
     }
 
     public static INDArray getFeedableData(File f) throws IOException {
-        int clusterSize = Integer.parseInt(ConfigManager.loadProperty("cluster-size"));
-        int clusterCount = Math.toIntExact(countLines(f) / clusterSize);
-        INDArray data = Nd4j.zeros(clusterCount, 3, clusterSize);
-        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
-            for (int clusterNum = 0; clusterNum < clusterCount; clusterCount++)
-                for (int i = 0; i < clusterSize; i++) {
-                    String line = br.readLine();
-                    if (line == null)
-                        throw new IOException("Too few lines to fit cluster (size " + i + "), needed: " + clusterSize + ".");
-                    Scanner sc = new Scanner(line);
-                    sc.useLocale(Locale.ENGLISH);
-                    sc.useDelimiter(",");
-                    for (int k = 0; k < 3; k++)
-                        data.putScalar(clusterNum, k, i, sc.nextDouble());
+        long linesCount = DataPrepare_ALT.countLines(f, false);
 
-                    sc.close();
-                }
+        INDArray data = Nd4j.zeros(1, 3, linesCount);
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String line;
+            int i = 0;
+            while (i < linesCount) {
+                line = br.readLine();
+                Scanner sc = new Scanner(line);
+                sc.useLocale(Locale.ENGLISH);
+                sc.useDelimiter(",");
+                for (int k = 0; k < 3; k++)
+                    data.putScalar(i , k, i , sc.nextDouble());
+                i++;
+                sc.close();
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         return data;
     }
 
-    public static void reset() {
+    private static void reset() {
         fileNum = 0;
     }
 
-    static int clusterLimit = 999;
-
-    public static void main(String[] args) {
-//        convert("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer\\0.csv",
-//                "C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer\\sas");
-
-        clusterLimit = 4;
-        int clusters = generateEvalData(0, new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\dataFromServer"), true);
-
-        clusterLimit = clusters;
-        clusters += generateEvalData(1, new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\the_person"), false);
-        ConfigManager.saveProperty("clusters-num", Integer.toString(clusters), ConfigType.INT);
+    public static int getFileNum() {
+        return fileNum;
     }
+
+    static int clusterLimit = 999;
 }

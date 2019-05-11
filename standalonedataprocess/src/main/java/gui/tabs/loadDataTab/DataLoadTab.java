@@ -2,20 +2,20 @@ package gui.tabs.loadDataTab;
 
 import accelTest.DataPrepare_ALT;
 import configWork.ConfigManager;
+import configWork.ConfigType;
 import gui.DesignControl;
 import gui.components.DesignedButton;
 import gui.components.DesignedLabel;
 import gui.components.DesignedPanel;
 import gui.graph.GraphRender;
-import gui.tabs.helpTab.HelpTab;
 import gui.tabs.loadDataTab.dataLoader.YReader;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 public class DataLoadTab extends JPanel {
     DataLoaderListener l;
@@ -34,6 +34,7 @@ public class DataLoadTab extends JPanel {
     JButton prepareBtn;
     JButton resetBtn;
     JButton chooseFileBtn, chooseFileBtn2;
+    ArrayList<JLabel> dataLoadInfoLabels;
 
     JFileChooser fileChooser;
 
@@ -44,9 +45,8 @@ public class DataLoadTab extends JPanel {
 
         createControls();
 
-        add(new HelpTab(), BorderLayout.CENTER);
+        add(addStatusPanel(), BorderLayout.CENTER);
     }
-
 
 
     void createControls() {
@@ -90,19 +90,112 @@ public class DataLoadTab extends JPanel {
         buttonSide.add(prepareBtn);
         buttonSide.add(Box.createVerticalStrut(10));
         buttonSide.add(resetBtn);
-
+        buttonSide.add(Box.createVerticalStrut(30));
+        createSwitch("- Limit", "+ Limit", "file-limit", buttonSide);
 
         add(buttonSide, BorderLayout.WEST);
+    }
+
+    private void createSwitch(String off, String on, String intProperty, Container c) {
+        //create file chooser
+        JButton jb = new DesignedButton(off);
+        jb.addActionListener(e -> {
+            if (jb.getText().equals(off)) {
+                ConfigManager.saveProperty(intProperty, "1", ConfigType.INT);
+                jb.setText(on);
+            } else {
+                ConfigManager.saveProperty(intProperty, "0", ConfigType.INT);
+                jb.setText(off);
+            }
+        });
+        ConfigManager.saveProperty(intProperty, "0", ConfigType.INT);
+
+        c.add(jb);//add btn
+    }
+
+    JPanel addStatusPanel() {
+        JPanel statusPanel = new DesignedPanel(Color.DARK_GRAY);
+        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
+
+        dataLoadInfoLabels = new ArrayList<>();
+        dataLoadInfoLabels.add(new DesignedLabel());
+        dataLoadInfoLabels.add(new DesignedLabel());
+        dataLoadInfoLabels.add(new DesignedLabel());
+
+        for (int i = 0; i < 3; i++) {
+            dataLoadInfoLabels.add(new DesignedLabel());
+            statusPanel.add(dataLoadInfoLabels.get(i));
+            statusPanel.add(Box.createVerticalStrut(15));
+        }
+
+        return statusPanel;
+    }
+
+    void updateInfoLabels(String[] lines0, String[] lines1, String[] lines2) {
+        String dir1 = targetDirectory == null ? "undefined" : ".../" + targetDirectory.getName();
+        String dir2 = targetDirectory2 == null ? "undefined" : ".../" + targetDirectory2.getName();
+        String s = "<html>";
+        s += "<h2>Directory labelled (0): " + dir1 + "</h2>";
+        if (lines0 != null)
+            for (String line : lines0)
+                s += line + "<br>";
+        s += "</html>";
+        dataLoadInfoLabels.get(0).setText(s);
+
+        s = "<html>";
+        s += "<h2>Directory labelled (1): " + dir2 + "</h2>";
+        if (lines1 != null)
+            for (String line : lines1)
+                s += line + "<br>";
+        s += "</html>";
+        dataLoadInfoLabels.get(1).setText(s);
+
+        s = "<html>";
+        s += "<h2>Data processing results</h2>";
+        if (lines2 != null)
+            for (String line : lines2)
+                s += line + "<br>";
+        s += "</html>";
+        dataLoadInfoLabels.get(2).setText(s);
     }
 
     //handler for prepare data button
     private void generateEvalData(ActionEvent e) {
         new Thread(() -> {
             prepareBtn.setEnabled(false);
-            DataPrepare_ALT.generateEvalData(0, targetDirectory, true);
-            DataPrepare_ALT.generateEvalData(1, targetDirectory2, false);
+
+            String s_clusterSize = ConfigManager.loadProperty("cluster-size");
+            int clusterSize = Integer.parseInt(s_clusterSize);
+            float evalRatio = Integer.parseInt(ConfigManager.loadProperty("eval-ratio")) * .01f;
+
+            int[] clusters = DataPrepare_ALT.generateEvalData(0, 1, targetDirectory, targetDirectory2, true);
+            String[] res1 = resultOfDataSeparation(clusters[0], targetDirectory);
+
+            String[] res2 = resultOfDataSeparation(clusters[1], targetDirectory2);
+
+            String[] total = new String[]{
+                    "Total clusters: " + (clusters[0] + clusters[1]),
+                    "Total labels for training: " + (int)((clusters[0] + clusters[1]) * clusterSize * evalRatio),
+                    "Total labels for evaluation: " + (int)((clusters[0] + clusters[1]) * clusterSize * (1 - evalRatio)),
+                    "Different files: " + DataPrepare_ALT.getFileNum()
+            };
+            updateInfoLabels(res1, res2, total);
             reset();
         }).start();
+    }
+
+    private String[] resultOfDataSeparation(int clusters1, File f) {
+        String s_clusterSize = ConfigManager.loadProperty("cluster-size");
+        int clusterSize = Integer.parseInt(s_clusterSize);
+        float evalRatio = Integer.parseInt(ConfigManager.loadProperty("eval-ratio")) * .01f;
+
+        return new String[]{
+                "Data from files in .../" + f.getName(),
+                "Clusters: " + clusters1,
+                "Cluster size: " + s_clusterSize,
+                "Training lines per cluster: " + clusterSize * evalRatio,
+                "Eval lines per cluster: " + clusterSize * (1 - evalRatio)
+        };
     }
 
     void reset() {

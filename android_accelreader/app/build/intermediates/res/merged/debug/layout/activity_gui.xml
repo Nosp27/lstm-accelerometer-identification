@@ -9,72 +9,104 @@
 
     <TextView
         android:id="@+id/text_pfc"
-        android:layout_width="wrap_content"
-        android:layout_height="25dp"
+        android:layout_width="234dp"
+        android:layout_height="79dp"
+        android:layout_marginStart="8dp"
         android:text="Hello World!"
         android:textColor="@android:color/holo_orange_dark"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.097"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/erase"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.063" />
+        app:layout_constraintVertical_bias="0.033" />
 
     <TextView
         android:id="@+id/net_debug"
-        android:layout_width="wrap_content"
-        android:layout_height="25dp"
-        android:text="Hello World!"
+        android:layout_width="215dp"
+        android:layout_height="51dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="Server in unaccessible"
+        android:textAlignment="viewEnd"
         android:textColor="@android:color/background_light"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.051"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.288" />
+        android:textStyle="italic"
+        app:layout_constraintBottom_toTopOf="@+id/changeIPBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <Button
         android:id="@+id/startStop"
-        android:layout_width="105dp"
-        android:layout_height="53dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="117dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:background="@android:color/holo_orange_light"
-        android:text="Стой"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Suspend"
+        android:textColor="@android:color/background_dark"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/erase"
-        android:layout_width="152dp"
-        android:layout_height="45dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="232dp"
+        android:layout_width="118dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:background="@android:color/holo_orange_light"
-        android:text="Стереть данные"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="Clear data"
+        android:textColor="@android:color/background_dark"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/startStop" />
 
     <Button
         android:id="@+id/transmit"
-        android:layout_width="208dp"
-        android:layout_height="45dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="288dp"
+        android:layout_width="118dp"
+        android:layout_height="47dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:background="@android:color/holo_orange_light"
-        android:text="Передать данные"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="Transmit"
+        android:textColor="@android:color/background_dark"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/erase" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="210dp"
         android:layout_height="36dp"
         android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="Записалось: 50000"
-        android:textColor="@android:color/holo_red_light"
+        android:layout_marginEnd="8dp"
+        android:text="Size"
+        android:textAlignment="viewEnd"
+        android:textColor="@android:color/darker_gray"
         android:textSize="14sp"
+        android:textStyle="italic"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <EditText
+        android:id="@+id/ip_input"
+        android:layout_width="217dp"
+        android:layout_height="47dp"
+        android:layout_marginBottom="92dp"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@android:color/darker_gray"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:text="Name"
+        android:textAlignment="viewEnd"
+        android:textColor="@android:color/background_light"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/changeIPBtn" />
+
+    <Button
+        android:id="@+id/changeIPBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="47dp"
+        android:layout_marginBottom="92dp"
+        android:layout_marginEnd="8dp"
+        android:text="Change ip"
+        android:textColor="@android:color/background_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

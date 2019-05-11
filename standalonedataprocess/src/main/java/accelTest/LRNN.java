@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 public class LRNN {
     private static final Logger log = LoggerFactory.getLogger(LRNN.class);
@@ -53,13 +54,16 @@ public class LRNN {
 
     public LRNN() {
         _network = configureNet();
-        Pair<DataSetIterator, DataNormalization> pair = getDataSetIterator(true, null);
 
-        trainIter = pair.getFirst();
-        evalIter = getDataSetIterator(false, pair.getSecond()).getFirst();
+        trainIter = getDataSetIterator(true);
+        evalIter = getDataSetIterator(false);
     }
 
-    public Pair<DataSetIterator, DataNormalization> getDataSetIterator(boolean train, DataNormalization normalizer) {
+    public MultiLayerNetwork getNet() {
+        return _network;
+    }
+
+    public DataSetIterator getDataSetIterator(boolean train) {
         try {
             // ----- Load the training data -----
             int miniBatchSize = Integer.parseInt(ConfigManager.loadProperty("cluster-size"));
@@ -77,17 +81,7 @@ public class LRNN {
             DataSetIterator dataIter = new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, miniBatchSize, numLabelClasses,
                     false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
 
-            //Normalize the training data
-            if (normalizer == null)
-                normalizer = new NormalizerStandardize();
-
-            normalizer.fit(dataIter);              //Collect training data statistics
-            dataIter.reset();
-
-            //Use previously collected statistics to normalize on-the-fly. Each DataSet returned by 'trainData' iterator will be normalized
-            dataIter.setPreProcessor(normalizer);
-
-            return new Pair<>(dataIter, normalizer);
+            return dataIter;
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return null;
@@ -101,8 +95,8 @@ public class LRNN {
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam())
                 .list()
-                .layer(new LSTM.Builder().activation(Activation.RELU).nIn(3).nOut(midLayers).build())
-                .layer(new LSTM.Builder().activation(Activation.RELU).nOut(midLayers).build())
+                .layer(new LSTM.Builder().activation(Activation.TANH).nIn(3).nOut(midLayers).build())
+                .layer(new LSTM.Builder().activation(Activation.TANH).nOut(midLayers/2).build())
                 .layer(new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
                         .activation(Activation.SOFTMAX).nOut(numLabelClasses).build())
                 .build();
@@ -116,9 +110,10 @@ public class LRNN {
 
     public void trainNet(TrainDataListener l, TrainTab.IStopLearning iStopLearning) {
         // ----- Train the network, evaluating the test set performance at each epoch -----
-        int nEpochs = 50;
-        String str = "Test set evaluation at epoch %d: Accuracy = %.2f";
+        int nEpochs = 5;
+        String str = "gui.Test set evaluation at epoch %d: Accuracy = %.2f";
         for (int i = 0; i < nEpochs && !iStopLearning.stopped(); i++) {
+
             _network.fit(trainIter);
 
             //Evaluate on the test set:
@@ -130,16 +125,17 @@ public class LRNN {
             evalIter.reset();
         }
 
-        log.info("----- Example Complete -----");
-
         try {
-            saveNet(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\config\\net-out\\Adam_net.nnd"));
+            saveNet(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\config\\net-out\\Adam_net.nnd"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        log.info("----- Example Complete -----");
     }
 
     public void saveNet(File fileToSave) throws IOException {
+        fileToSave.createNewFile();
         ModelSerializer.writeModel(_network, fileToSave, true);
     }
 
@@ -147,24 +143,26 @@ public class LRNN {
         _network = ModelSerializer.restoreMultiLayerNetwork(netLocation);
     }
 
-    public double feedNet(INDArray data){
-            INDArray out = feedNet0(data);
+    public double feedNet(INDArray data) {
+        System.out.println(String.format(Locale.ENGLISH, "{%d, %d, %d}", data.size(0), data.size(1), data.size(2)));
 
-            double result = 0;
-            System.out.println("Size: " + out.size(2));
-            for(int i = 0; i < out.size(2); i++){
-                result += out.getDouble(0,1, i);
-            }
-            result /= out.size(2);
-            System.out.println("feed result: " + result);
-            return result;
+        INDArray out = feedNet0(data);
+
+        double result = 0;
+        System.out.println("Size: " + out.size(2));
+        for (int i = 0; i < out.size(2); i++) {
+            result += out.getDouble(0, 1, i);
+        }
+        result /= out.size(2);
+        System.out.println("feed result: " + result);
+        return result;
     }
 
     private INDArray feedNet0(INDArray data) {
         if (_network == null)
             return null;
 
-        INDArray output = _network.activate(data, Layer.TrainingMode.TEST);
+        INDArray output = _network.output(data, true);
         return output;
     }
 
@@ -177,32 +175,27 @@ public class LRNN {
         LRNN net = new LRNN();
 
         if (state) {
-                net.trainNet(
-                new TrainDataListener() {
-                    @Override
-                    public void onGetStats(Evaluation evaluation) {
+            net.trainNet(
+                    new TrainDataListener() {
+                        @Override
+                        public void onGetStats(Evaluation evaluation) {
 
-                    }
-                },
-                new TrainTab.IStopLearning() {
-                    @Override
-                    public boolean stopped() {
-                        return false;
-                    }
-                });
+                        }
+                    },
+                    new TrainTab.IStopLearning() {
+                        @Override
+                        public boolean stopped() {
+                            return false;
+                        }
+                    });
         } else {
             try {
-                net.loadNet(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\config\\net-out\\Adam_net.nnd"));
-                INDArray in = DataPrepare_ALT.getFeedableData(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\net_in\\e\\features\\1.csv"));
-                INDArray out = net.feedNet0(in);
-                double result = 0;
-                System.out.println("Size: " + out.size(2));
-                for(int i = 0; i < out.size(2); i++){
-                    result += out.getDouble(0,1, i);
-                    System.out.println("" + out.getDouble(0, 0, i) + "\t " + out.getDouble(0,1, i));
-                }
+                net.loadNet(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\config\\net-out\\Adam_net.nnd"));
+                INDArray in = DataPrepare_ALT.getFeedableData(
+                        new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\net_in\\e\\features\\1.csv"));
 
-                System.out.println(result * 1.0 / out.size(2));
+                double out = net.feedNet(in);
+                System.out.println(out);
             } catch (IOException e) {
                 e.printStackTrace();
             }

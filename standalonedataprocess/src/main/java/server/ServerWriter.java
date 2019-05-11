@@ -19,17 +19,22 @@ public class ServerWriter {
     private ICallbackServer serverListener;
 
     private ServerWriter() {
-        serverThread.start();
+        try {
+            ss = new ServerSocket(5000);
+            serverThread.start();
+        } catch (IOException e) {
+            ss = null;
+        }
     }
 
     /**
      * accept client socket
+     *
      * @throws IOException
      */
     boolean initServer() {
         try {
             System.out.println("Server accepting...");
-            ss = new ServerSocket(5000);
             clientSocket = ss.accept();
             System.out.println("Accepted " + clientSocket.toString());
 
@@ -58,6 +63,7 @@ public class ServerWriter {
                         System.out.println("got file");
                         String dir = ConfigManager.loadProperty("loaded-data");
                         File destinationFile = new File(dir, "" + getFileCounter(new File(dir)) + ".csv");
+                        System.out.println(destinationFile.getAbsolutePath());
                         FileOutputStream fileOut = new FileOutputStream(destinationFile);
 
                         String line = r.readLine();
@@ -78,7 +84,8 @@ public class ServerWriter {
 
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
+            //client disconnected
             e.printStackTrace();
         }
     }
@@ -98,13 +105,17 @@ public class ServerWriter {
 
     Thread serverThread = new Thread(() -> {
 
-        while (true) {
-            if (!initServer()) {
-                System.out.println("weak initialization occurred");
-                continue;
-            }
+        try {
+            while (true) {
+                if (!initServer()) {
+                    System.out.println("weak initialization occurred");
+                    continue;
+                }
 
-            processRequest();
+                processRequest();
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     });
 
@@ -128,7 +139,7 @@ public class ServerWriter {
                 s += "Server" + newline;
                 s += "State: " + getServerState() + newline;
                 s += "Connection: " + getConnectionState() + newline;
-                s += "Data trensfer: " + fileCounter + " files" + newline;
+                s += "Last file located: " + (fileCounter) + ".csv" + newline;
                 s += "</html>";
                 return s;
             }
@@ -146,7 +157,11 @@ public class ServerWriter {
             }
 
             private String getConnectionState() {
-                return (clientSocket != null ? (clientSocket.isConnected() ? "established" : "disconnected") : "not found");
+                if (clientSocket == null)
+                    return "not found";
+                if (!clientSocket.isClosed())
+                    return "established";
+                return "disconnected";
             }
         };
     }

@@ -1,26 +1,29 @@
 package com.cw.nosp.android_accel_reader;
 
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import java.util.List;
+import org.w3c.dom.Text;
+
 import java.util.Locale;
-import java.util.Random;
+import java.util.Vector;
 
-public class GUI extends AppCompatActivity {
-    static Random rand = new Random();
-
+public class GUI extends AppCompatActivity implements LogListener {
     private boolean running = true;
     private ServiceControl sc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.setTitle("Android accelerometer verifier");
+        this.setTheme(R.style.Theme_AppCompat_DayNight_DarkActionBar);
         setContentView(R.layout.activity_gui);
         (findViewById(R.id.transmit)).setVisibility(View.INVISIBLE);
 
@@ -36,23 +39,14 @@ public class GUI extends AppCompatActivity {
     }
 
     private void setIpFieldListener() {
-        final EditText ipEditor = findViewById(R.id.ip_input);
-        ipEditor.addTextChangedListener(new TextWatcher() {
-            String previousText;
+        ((EditText) findViewById(R.id.ip_input)).setText("192.168.1.156");
+        final Button ipButton = findViewById(R.id.changeIPBtn);
+        ipButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                previousText = charSequence.toString();
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if(isValidIP(ipEditor.getText().toString())){
-
+            public void onClick(View view) {
+                String newAddr = ((TextView) findViewById(R.id.ip_input)).getText().toString();
+                if (isValidIP(newAddr)) {
+                    sc.changeIpAddress(newAddr);
                 }
             }
 
@@ -63,7 +57,10 @@ public class GUI extends AppCompatActivity {
         });
     }
 
-    public void bindCallback(final String msg) {
+    Vector<String> logQ = new Vector<>();
+
+    @Override
+    public void log(final String msg) {
         if (msg.startsWith("connection")) {
             Runnable r = new Runnable() {
                 @Override
@@ -73,8 +70,31 @@ public class GUI extends AppCompatActivity {
                 }
             };
             (findViewById(R.id.transmit)).post(r);
-        } else
-            ((TextView) findViewById(R.id.text_pfc)).setText(String.format(Locale.ENGLISH, msg));
+        } else {
+            String s = "";
+            logQ.add(msg);
+            for (int i = 1; i <= Math.min(logQ.size(), 3); i++)
+                s += logQ.get(logQ.size() - i) + "\n";
+            final String _s = s;
+            findViewById(R.id.text_pfc).post(new Runnable() {
+                @Override
+                public void run() {
+                    ((TextView) findViewById(R.id.text_pfc)).setText(String.format(Locale.ENGLISH, _s));
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onChangedIp() {
+        ((TextView) findViewById(R.id.net_debug)).setText("ip changed");
+    }
+
+    @Override
+    public void onRunningModeChanged(boolean newRunning) {
+        if (running != newRunning)
+            running = newRunning;
+        ((TextView) findViewById(R.id.startStop)).setText(running ? "Suspend" : "Resume");
     }
 
     private void setStartStopClickListener() {
@@ -85,7 +105,7 @@ public class GUI extends AppCompatActivity {
                     return;
 
                 running = !running;
-                ((TextView) findViewById(R.id.startStop)).setText(running ? "Suspend" : "Resume");
+                onRunningModeChanged(running);
                 if (running)
                     sc.resume();
                 else sc.suspend();
@@ -129,6 +149,7 @@ public class GUI extends AppCompatActivity {
                         }
                     }).start();
                 } else {
+                    sc.suspend();
                     sc.deleteFiles();
                     requested = false;
                     (findViewById(R.id.erase)).setBackgroundColor(prevC);
@@ -170,13 +191,5 @@ public class GUI extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    String r(List<String> l) {
-        return l.get(rand.nextInt(l.size()));
-    }
-
-    public interface ServerListener{
-        void onChangeIp(String newValidIp);
     }
 }

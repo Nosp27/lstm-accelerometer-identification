@@ -1,12 +1,8 @@
 package com.cw.nosp.android_accel_reader;
 
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -30,7 +26,9 @@ public class WriterService extends Service implements DataTransmitter.ClientList
     /////////////////////////////
 
     //server-client connection
+    private DataTransmitter dt;
     private Transmitter transmitter;
+    private String currentIP = "192.168.1.156";
     /////////////////////////////
 
     //notifications
@@ -58,11 +56,11 @@ public class WriterService extends Service implements DataTransmitter.ClientList
     //service control
     private IBinder localBinder = new LocalBinder();
     private boolean bound = false;
-    private LogLostener ll;
+    private LogListener ll;
     /////////////////////////////
 
     //interface
-    public void setLog(LogLostener l) {
+    public void setLog(LogListener l) {
         ll = l;
     }
     /////////////////////////////
@@ -95,6 +93,7 @@ public class WriterService extends Service implements DataTransmitter.ClientList
         notMan.cancel(FOREGROUND_ID);
         dumpFileData();
         ll.log("Service is suspended");
+        ll.onRunningModeChanged(false);
     }
 
     /**
@@ -117,6 +116,7 @@ public class WriterService extends Service implements DataTransmitter.ClientList
         } finally {
             running = true;
             setSensorData(new float[]{0, 0, 0});
+            ll.onRunningModeChanged(true);
         }
     }
 
@@ -147,7 +147,7 @@ public class WriterService extends Service implements DataTransmitter.ClientList
             initializeAccelerometer();
             captureSensorActivity();
 
-            new DataTransmitter(this);
+            dt = new DataTransmitter(this, currentIP);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -186,7 +186,6 @@ public class WriterService extends Service implements DataTransmitter.ClientList
             f.delete();
 
         fileNum = 0;
-        resume();
     }
 
     /**
@@ -199,15 +198,16 @@ public class WriterService extends Service implements DataTransmitter.ClientList
         String baseDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
 
         suspend();
-        for (int i = 0; i < fileNum; i++)
-            ll.log(transmitter.transmit(baseDir + File.separator + filename(i)));
+        for (int i = 0; i < fileNum; i++) {
+            transmitter.transmit(baseDir + File.separator + filename(i));
+        }
     }
 
     //region server listener
     @Override
     public void onConnect(Transmitter t) {
         transmitter = t;
-        ll.log("connection estabilished");
+        ll.log("connection established");
     }
 
     @Override
@@ -219,6 +219,17 @@ public class WriterService extends Service implements DataTransmitter.ClientList
     @Override
     public void onDataRecieved(InputStream in) {
 
+    }
+
+    @Override
+    public void log(String s) {
+        ll.log(s);
+    }
+
+    public void changeIp(String newValidIp) {
+        currentIP = newValidIp;
+        dt.onChangeIp(currentIP);
+        ll.onChangedIp();
     }
     //endregion
 

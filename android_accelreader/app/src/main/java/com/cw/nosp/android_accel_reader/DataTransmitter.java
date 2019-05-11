@@ -2,20 +2,28 @@ package com.cw.nosp.android_accel_reader;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.Vector;
 
 /**
  * Class provides opportunity to transfer files to server via internet
  */
-public class DataTransmitter implements Transmitter, GUI.ServerListener {
+public class DataTransmitter implements Transmitter {
     private volatile Socket clientSocket;
-    private String ipAddressString = "192.168.1.156";
+    private volatile String ipAddressString;
+
+    private enum ConnectionState {
+        CONNECTED,
+        DISCONNECTED
+    }
+
+    private ConnectionState c_state = ConnectionState.DISCONNECTED;
 
     //for callback
     private volatile ClientListener l;
 
     //transmitter queue
-    private volatile Vector<String> q;
+    private final Vector<String> q = new Vector<>();
 
     //thread is responsible for establishing connection with server
     private Thread connectionThread = new Thread(new Runnable() {
@@ -37,70 +45,16 @@ public class DataTransmitter implements Transmitter, GUI.ServerListener {
     private void connect() {
         try {
             do {
-                Thread.sleep(2000);
-            } while (!tryFindServer());
+                Thread.sleep(600);
 
-            synchronized (DataTransmitter.this) {
-                l.onConnect(DataTransmitter.this);
-                DataTransmitter.this.notifyAll();
-            }
+                if (!tryFindServer())
+                    processDisconnect();
 
-            while (true) {
-                try {
-                    synchronized (DataTransmitter.this) {
-                        InputStream in = clientSocket.getInputStream();
-                        if (in.available() > 0) {
-                            l.onDataRecieved(in);
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            } while (true);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void rollTransmission() {
-        synchronized (DataTransmitter.this) {
-            try {
-                while (true) {
-                    if (clientSocket == null && !(clientSocket.isConnected() && clientSocket.isBound()))
-                        DataTransmitter.this.wait();
-
-                    final FileReader in;
-
-                    if (q.size() == 0) {
-                        DataTransmitter.this.wait();
-                    }
-
-                    String filename = q.get(0);
-                    q.remove(0);
-
-                    try {
-                        in = new FileReader(new File(filename));
-                    } catch (FileNotFoundException e) {
-                        return;
-                    }
-
-                    final OutputStream out = clientSocket.getOutputStream();
-                    BufferedReader r = new BufferedReader(in);
-
-                    out.write("file\n".getBytes());
-
-                    String _line;
-
-                    while ((_line = r.readLine()) != null)
-                        out.write((_line + "\n").getBytes());
-
-
-                    out.write("end\n".getBytes());
-                }
-            } catch (IOException e) {
-                l.onDisconnect();
-            } catch (InterruptedException e) {
-            }
+        } catch (NullPointerException e) {
+            processDisconnect();
         }
     }
 
@@ -109,12 +63,81 @@ public class DataTransmitter implements Transmitter, GUI.ServerListener {
      *
      * @return boolean, representing the result of connection attempt
      */
-    private synchronized boolean tryFindServer() {
+    private boolean tryFindServer() {
         try {
-            clientSocket = new Socket(ipAddressString, 5000);
-            return true;
+            synchronized (DataTransmitter.this) {
+                while (isConnected())
+                    return true;
+
+                clientSocket = new Socket(ipAddressString, 5000);
+                processConnect();
+                return true;
+            }
         } catch (IOException e) {
             return false;
+        }
+    }
+
+    private synchronized void processConnect() {
+        if (c_state == ConnectionState.CONNECTED)
+            return;
+
+        c_state = ConnectionState.CONNECTED;
+        l.onConnect(this);
+        notifyAll();
+    }
+
+    private synchronized void processDisconnect() {
+        if (c_state == ConnectionState.DISCONNECTED)
+            return;
+
+        c_state = ConnectionState.DISCONNECTED;
+        clientSocket = null;
+        l.onDisconnect();
+        notifyAll();
+    }
+
+    private void rollTransmission() {
+        try {
+            while (true) {
+                try {
+
+                    synchronized (q) {
+                        if (!isConnected() || q.isEmpty()) {
+                            q.wait();
+                        }
+
+                        //select file
+                        String filename = q.get(0);
+                        q.remove(0);
+
+                        //init file reader
+                        final FileReader in;
+                        try {
+                            in = new FileReader(new File(filename));
+                        } catch (FileNotFoundException e) {
+                            return;
+                        }
+
+                        //get outputStream
+                        final OutputStream out = clientSocket.getOutputStream();
+                        BufferedReader r = new BufferedReader(in);
+
+                        out.write("file\n".getBytes());
+
+                        String _line;
+
+                        while ((_line = r.readLine()) != null)
+                            out.write((_line + "\n").getBytes());
+
+
+                        out.write("end\n".getBytes());
+                    }
+                } catch (IOException | NullPointerException e) {
+                    processDisconnect();
+                }
+            }
+        } catch (InterruptedException e) {
         }
     }
     //endregion
@@ -124,7 +147,8 @@ public class DataTransmitter implements Transmitter, GUI.ServerListener {
      *
      * @param l listener
      */
-    public DataTransmitter(ClientListener l) {
+    public DataTransmitter(ClientListener l, String ip) {
+        ipAddressString = ip;
         this.l = l;
         connectionThread.start();
     }
@@ -136,28 +160,36 @@ public class DataTransmitter implements Transmitter, GUI.ServerListener {
      * @param line filename
      * @return string, representing result of operation
      */
-    public synchronized String transmit(final String line) {
-        if (q == null) {
-            q = new Vector<>();
-            q.add(line);
-            transmissionThread.start();
-        } else {
-            q.add(line);
-            notifyAll();
+    public void transmit(final String line) {
+        synchronized (q) {
+            if (q.isEmpty()) {
+                q.add(line);
+                if (c_state == ConnectionState.CONNECTED && transmissionThread.getState() == Thread.State.NEW)
+                    transmissionThread.start();
+                else q.notifyAll();
+            } else {
+                q.add(line);
+                q.notifyAll();
+            }
         }
-        return "usual success";
     }
 
     @Override
     public void onChangeIp(String newValidIp) {
-        if (clientSocket.isConnected()) {
-            try {
-                clientSocket.close();
-                ipAddressString = newValidIp;
-            } catch (IOException e) {
-                e.printStackTrace();
+        synchronized (DataTransmitter.this) {
+            ipAddressString = newValidIp;
+            if (isConnected()) {
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
+    }
+
+    private synchronized boolean isConnected() {
+        return clientSocket != null && clientSocket.isConnected() && !clientSocket.isClosed();
     }
 
     /**
@@ -169,6 +201,9 @@ public class DataTransmitter implements Transmitter, GUI.ServerListener {
         void onDisconnect();
 
         void onDataRecieved(InputStream in);
+
+        void log(String s);
+
     }
 
     public static void main(String[] args) {
@@ -188,12 +223,33 @@ public class DataTransmitter implements Transmitter, GUI.ServerListener {
                 public void onDataRecieved(InputStream in) {
                     System.out.println("received");
                 }
-            });
 
-            for (int i = 0; i < 10; i++) {
-                dt.transmit("C:\\Users\\Nosp\\IdeaProjects\\android_accelreader\\app\\app.iml");
+                @Override
+                public void log(String s) {
+                    System.out.println("log: " + s);
+                }
+            }, "192.168.1.156");
+
+
+//            dt.transmit("C:\\Users\\Nosp\\IdeaProjects\\android_accelreader\\app\\app.iml");
+            System.out.println("tx");
+
+            Scanner sc = new Scanner(System.in);
+            while (true) {
+                switch (sc.next()) {
+                    case "t":
+                        dt.transmit("C:\\Users\\Nosp\\IdeaProjects\\android_accelreader\\app\\app.iml");
+                        break;
+                    case "c":
+                        dt.onChangeIp("192.168.1.155");
+                        break;
+                    case "cb":
+                        dt.onChangeIp("192.168.1.156");
+                        break;
+                }
             }
         } catch (RuntimeException e) {
+            e.printStackTrace();
         }
     }
 }

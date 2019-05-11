@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigManager {
-    private static final String configPath = "C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\src\\main\\resources\\config\\config.conf";
+    private static final String configPath = "config.conf";
     private static Map<String, Property> properties;
 
     private static void configLoad() {
@@ -24,7 +24,7 @@ public class ConfigManager {
                 }
             }
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            createConfigs();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,5 +58,29 @@ public class ConfigManager {
         properties.put(p.name, p);
         System.out.println("Set property " + name + " = " + value);
         configSave();
+    }
+
+    private static void createConfigs() {
+        File configFile = new File(configPath);
+        try {
+            configFile.createNewFile();
+
+            try(FileOutputStream out = new FileOutputStream(configFile);
+                BufferedReader in = new BufferedReader(new InputStreamReader(ConfigManager.class.getResourceAsStream("/config.conf")))){
+                String line;
+                while ((line = in.readLine())!= null)
+                    out.write((line + "\n").getBytes());
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean check() {
+        if(!new File(configPath).exists()) {
+            createConfigs();
+            return false;
+        }
+        return true;
     }
 }
