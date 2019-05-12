@@ -1,18 +1,14 @@
 package gui.components;
 
-import gui.DataPrepareWnd;
-import javafx.scene.layout.Background;
-import sun.security.krb5.internal.crypto.Des;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 public class DesignedPanel extends JPanel {
-    public static final String BG = "/bg.jpg";
-    public static final String BG2 = "/bg2.jpg";
+    public static final String BG = "/bg2.jpeg";
+    public static final Color PRIMARY = new Color(0x080f19);
+    public static final Color PRIMARY_LIGHT = new Color(0x161f2b);
     private Image img;
 
     public DesignedPanel(Color bg) {
@@ -27,7 +23,7 @@ public class DesignedPanel extends JPanel {
 
     public DesignedPanel() {
         super();
-        setBackground(Color.DARK_GRAY);
+        setBackground(PRIMARY);
     }
 
     @Override

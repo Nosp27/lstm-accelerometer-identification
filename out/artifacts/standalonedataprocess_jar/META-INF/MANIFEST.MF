@@ -1,0 +1,178 @@
+Manifest-Version: 1.0
+Class-Path: spark-unsafe_2.11-2.1.0.jar hadoop-yarn-api-2.2.0.jar lept
+ onica-1.76.0-1.4.3-linux-x86_64.jar javacv-1.4.3.jar scala-reflect-2.
+ 11.12.jar play-server_2.11-2.4.8.jar json4s-jackson_2.11-3.2.11.jar m
+ kl-dnn-0.16-1.4.3-linux-x86_64.jar openblas-platform-0.3.3-1.4.3.jar 
+ spire-macros_2.11-0.7.4.jar jackson-mapper-asl-1.9.13.jar hadoop-anno
+ tations-2.2.0.jar jaxb-core-2.2.11.jar hadoop-yarn-common-2.2.0.jar n
+ d4j-native-1.0.0-beta3-macosx-x86_64.jar deeplearning4j-ui-resources-
+ 1.0.0-beta3.jar deeplearning4j-util-1.0.0-beta3.jar dl4j-spark-nlp_2.
+ 11-1.0.0-beta_spark_2.jar ffmpeg-4.0.2-1.4.3-macosx-x86_64.jar deeple
+ arning4j-datasets-1.0.0-beta3.jar commons-httpclient-3.1.jar jul-to-s
+ lf4j-1.7.16.jar tesseract-4.0.0-rc2-1.4.3.jar spire_2.11-0.7.4.jar mk
+ l-2019.0-1.4.3-linux-x86_64.jar ffmpeg-4.0.2-1.4.3-linux-x86.jar jack
+ son-1.0.0-beta3.jar snappy-java-1.1.2.6.jar jackson-annotations-2.5.1
+ .jar nd4j-native-1.0.0-beta3-android-x86.jar nd4j-context-1.0.0-beta3
+ .jar breeze_2.11-0.12.jar nd4j-cuda-9.2-1.0.0-beta3-linux-ppc64le.jar
+  leptonica-1.76.0-1.4.3-android-x86.jar stax2-api-3.1.4.jar nd4j-cuda
+ -9.2-1.0.0-beta3-macosx-x86_64.jar ffmpeg-4.0.2-1.4.3-linux-armhf.jar
+  jackson-datatype-jdk8-2.5.1.jar logback-core-1.2.3.jar imageio-metad
+ ata-3.1.1.jar fastutil-6.5.7.jar commons-crypto-1.0.0.jar deeplearnin
+ g4j-ui-components-1.0.0-beta3.jar kotlin-stdlib-1.0.7.jar jtransforms
+ -2.4.0.jar hadoop-mapreduce-client-common-2.2.0.jar rl4j-ale-1.0.0-be
+ ta3.jar deeplearning4j-zoo-1.0.0-beta3.jar chill_2.11-0.8.0.jar hadoo
+ p-client-2.2.0.jar gson-2.7.jar akka-persistence-experimental_2.11-2.
+ 3.16.jar scalap-2.11.0.jar ffmpeg-4.0.2-1.4.3-android-arm64.jar hadoo
+ p-mapreduce-client-shuffle-2.2.0.jar commons-collections-3.2.2.jar gy
+ m-java-client-1.0.0-beta3.jar oshi-core-3.4.2.jar ffmpeg-4.0.2-1.4.3.
+ jar akka-actor_2.11-2.3.16.jar imageio-core-3.1.1.jar leptonica-1.76.
+ 0-1.4.3-android-arm.jar opencv-3.4.3-1.4.3-android-x86.jar hk2-utils-
+ 2.4.0-b34.jar leveldb-api-0.5.jar ivy-2.4.0.jar openblas-0.3.3-1.4.3.
+ jar commons-digester-1.8.jar nd4j-aeron-1.0.0-beta3.jar breeze-macros
+ _2.11-0.12.jar parquet-common-1.8.1.jar deeplearning4j-utility-iterat
+ ors-1.0.0-beta3.jar slf4j-api-1.7.21.jar mkl-2019.0-1.4.3-macosx-x86_
+ 64.jar datavec-spark_2.11-1.0.0-beta_spark_2.jar hadoop-yarn-server-c
+ ommon-2.2.0.jar commons-compress-1.16.1.jar jersey-container-servlet-
+ core-2.22.2.jar jackson-core-asl-1.9.13.jar arbiter-ui_2.11-1.0.0-bet
+ a3.jar spring-context-4.1.6.RELEASE.jar openblas-0.3.3-1.4.3-linux-pp
+ c64le.jar commons-math3-3.5.jar common-lang-3.1.1.jar play-exceptions
+ -2.4.8.jar mkl-dnn-0.16-1.4.3-macosx-x86_64.jar config-1.3.0.jar jcip
+ -annotations-1.0.jar play-netty-server_2.11-2.4.8.jar jackson-datafor
+ mat-xml-2.6.5.jar cuda-9.2-7.1-1.4.2-macosx-x86_64.jar jcommander-1.2
+ 7.jar nd4j-native-api-1.0.0-beta3.jar leptonica-1.76.0-1.4.3-windows-
+ x86.jar twirl-api_2.11-1.1.1.jar hdf5-1.10.3-1.4.3-windows-x86_64.jar
+  opencv-3.4.3-1.4.3-windows-x86_64.jar httpclient-4.5.3.jar mkl-2019.
+ 0-1.4.3-linux-x86.jar jai-imageio-core-1.3.0.jar leptonica-platform-1
+ .76.0-1.4.3.jar janino-3.0.0.jar mapdb-3.0.5.jar leptonica-1.76.0-1.4
+ .3-linux-ppc64le.jar nd4j-native-1.0.0-beta3-ios-x86_64.jar scala-jav
+ a8-compat_2.11-0.3.0.jar play_2.11-2.4.8.jar jackson-dataformat-yaml-
+ 2.6.5.jar deeplearning4j-parallel-wrapper-1.0.0-beta3.jar openblas-0.
+ 3.3-1.4.3-windows-x86_64.jar nd4j-cuda-9.2-1.0.0-beta3.jar xercesImpl
+ -2.11.0.jar pmml-schema-1.2.15.jar spark-sketch_2.11-2.1.0.jar nd4j-n
+ ative-1.0.0-beta3-windows-x86_64.jar flycapture-2.11.3.121-1.4.3.jar 
+ jersey-container-servlet-2.22.2.jar joda-time-2.2.jar hadoop-hdfs-2.2
+ .0.jar snakeyaml-1.12.jar ffmpeg-4.0.2-1.4.3-linux-ppc64le.jar mkl-20
+ 19.0-1.4.3.jar openblas-0.3.3-1.4.3-windows-x86.jar kotlin-runtime-1.
+ 0.7.jar nd4j-native-1.0.0-beta3-android-arm.jar flatbuffers-java-1.9.
+ 0.jar imageio-bmp-3.1.1.jar hdf5-1.10.3-1.4.3-linux-ppc64le.jar build
+ -link-2.4.8.jar log4j-1.2.17.jar zookeeper-3.4.6.jar cuda-9.2-7.1-1.4
+ .2-linux-x86_64.jar commons-math-2.1.jar netty-3.10.4.Final.jar ffmpe
+ g-4.0.2-1.4.3-windows-x86.jar nd4j-native-1.0.0-beta3-linux-ppc64le.j
+ ar libdc1394-2.2.5-1.4.3.jar opencv-3.4.3-1.4.3-linux-x86_64.jar nd4j
+ -api-1.0.0-beta3.jar joda-convert-1.7.jar py4j-0.10.4.jar kryo-shaded
+ -3.0.3.jar deeplearning4j-modelimport-1.0.0-beta3.jar hk2-api-2.4.0-b
+ 34.jar ffmpeg-4.0.2-1.4.3-android-x86_64.jar lz4-1.3.0.jar ffmpeg-4.0
+ .2-1.4.3-windows-x86_64.jar hdf5-1.10.3-1.4.3-linux-x86_64.jar protob
+ uf-java-util-shaded-351-0.9.jar oro-2.0.8.jar openblas-0.3.3-1.4.3-an
+ droid-x86.jar deeplearning4j-tsne-1.0.0-beta3.jar jaxb-impl-2.2.11.ja
+ r nd4j-native-1.0.0-beta3-android-x86_64.jar metrics-core-3.1.2.jar c
+ ommons-collections4-4.1.jar opencv-3.4.3-1.4.3-android-x86_64.jar uni
+ rest-java-1.4.9.jar nd4j-native-1.0.0-beta3.jar spark-mllib-local_2.1
+ 1-2.1.0.jar hadoop-mapreduce-client-app-2.2.0.jar play-json_2.11-2.4.
+ 8.jar guava-16.0.1.jar javax.servlet-api-3.1.0.jar antlr4-runtime-4.5
+ .3.jar compress-lzf-1.0.3.jar hdf5-1.10.3-1.4.3-linux-x86.jar leptoni
+ ca-1.76.0-1.4.3.jar scalatest_2.11-2.2.6.jar jcl-over-slf4j-1.7.16.ja
+ r avro-1.7.7.jar akka-slf4j_2.11-2.3.16.jar curator-recipes-2.8.0.jar
+  hadoop-yarn-client-2.2.0.jar curator-framework-2.8.0.jar opencv-3.4.
+ 3-1.4.3.jar opencv-3.4.3-1.4.3-linux-x86.jar play-java_2.11-2.4.8.jar
+  spark-network-shuffle_2.11-2.1.0.jar nd4j-native-1.0.0-beta3-android
+ -arm64.jar jna-platform-4.3.0.jar leptonica-1.76.0-1.4.3-linux-x86.ja
+ r mkl-dnn-platform-0.16-1.4.3.jar akka-contrib_2.11-2.3.16.jar unused
+ -1.0.0.jar ffmpeg-4.0.2-1.4.3-android-arm.jar nearestneighbor-core-1.
+ 0.0-beta3.jar opencv-3.4.3-1.4.3-ios-arm64.jar openblas-0.3.3-1.4.3-m
+ acosx-x86_64.jar rl4j-core-1.0.0-beta3.jar asm-5.1.jar httpasyncclien
+ t-4.1.1.jar hdf5-1.10.3-1.4.3-macosx-x86_64.jar openblas-0.3.3-1.4.3-
+ android-arm64.jar avro-ipc-1.7.7-tests.jar arbiter-deeplearning4j-1.0
+ .0-beta3.jar eclipse-collections-forkjoin-7.1.2.jar uncommons-maths-1
+ .2.2a.jar pmml-model-1.2.15.jar commons-configuration-1.6.jar openbla
+ s-0.3.3-1.4.3-ios-arm64.jar rl4j-malmo-1.0.0-beta3.jar netty-http-pip
+ elining-1.1.4.jar nd4j-cuda-9.2-1.0.0-beta3-linux-x86_64.jar nd4j-nat
+ ive-platform-1.0.0-beta3.jar neoitertools-1.0.0.jar openblas-0.3.3-1.
+ 4.3-android-arm.jar leptonica-1.76.0-1.4.3-macosx-x86_64.jar jersey-c
+ lient-2.22.2.jar jersey-guava-2.22.2.jar jets3t-0.7.1.jar jna-4.3.0.j
+ ar osgi-resource-locator-1.0.1.jar httpcore-nio-4.4.4.jar play-dataco
+ mmons_2.11-2.4.8.jar objenesis-2.6.jar spark-sql_2.11-2.1.0.jar sqlit
+ e-jdbc-3.15.1.jar mkl-2019.0-1.4.3-windows-x86.jar arbiter-core-1.0.0
+ -beta3.jar scala-library-2.11.8.jar parquet-format-2.3.0-incubating.j
+ ar deeplearning4j-nn-1.0.0-beta3.jar protobuf-java-shaded-351-0.9.jar
+  openblas-0.3.3-1.4.3-ios-x86_64.jar commons-cli-1.2.jar paranamer-2.
+ 6.jar cuda-9.2-7.1-1.4.2-windows-x86_64.jar rl4j-api-1.0.0-beta3.jar 
+ javassist-3.19.0-GA.jar commons-logging-1.2.jar reactive-streams-1.0.
+ 2.jar threadly-4.10.0.jar nd4j-parameter-server-client-1.0.0-beta3.ja
+ r videoinput-0.200-1.4.3.jar univocity-parsers-2.2.1.jar javax.inject
+ -2.4.0-b34.jar opencv-3.4.3-1.4.3-macosx-x86_64.jar jersey-media-jaxb
+ -2.22.2.jar commons-compiler-3.0.0.jar hadoop-auth-2.2.0.jar dl4j-spa
+ rk_2.11-1.0.0-beta_spark_2.jar logback-classic-1.2.3.jar stream-2.7.0
+ .jar parquet-hadoop-1.8.1.jar deeplearning4j-ui-model-1.0.0-beta3.jar
+  mkl-2019.0-1.4.3-windows-x86_64.jar guice-4.0.jar leptonica-1.76.0-1
+ .4.3-android-arm64.jar spark-mllib_2.11-2.1.0.jar spring-beans-4.1.6.
+ RELEASE.jar guice-assistedinject-4.0.jar netty-all-4.0.42.Final.jar l
+ ibrealsense-1.12.1-1.4.3.jar jline-0.9.94.jar jackson-module-jaxb-ann
+ otations-2.6.5.jar deeplearning4j-nlp-1.0.0-beta3.jar spark-core_2.11
+ -2.1.0.jar datavec-api-1.0.0-beta3.jar opencv-3.4.3-1.4.3-ios-x86_64.
+ jar opencv-3.4.3-1.4.3-windows-x86.jar hadoop-common-2.2.0.jar cuda-9
+ .2-7.1-1.4.2-linux-ppc64le.jar t-digest-3.2.jar netty-common-4.1.22.F
+ inal.jar openblas-0.3.3-1.4.3-android-x86_64.jar protobuf-java-2.6.1.
+ jar xbean-asm5-shaded-4.4.jar nd4j-cuda-9.2-1.0.0-beta3-windows-x86_6
+ 4.jar nd4j-parameter-server-model-1.0.0-beta3.jar nd4j-common-1.0.0-b
+ eta3.jar javax.inject-1.jar nd4j-parameter-server-status_2.11-1.0.0-b
+ eta3.jar httpcore-4.4.6.jar opencsv-2.3.jar spark-network-common_2.11
+ -2.1.0.jar mkl-platform-2019.0-1.4.3.jar hk2-locator-2.4.0-b34.jar ao
+ palliance-repackaged-2.4.0-b34.jar eclipse-collections-7.1.2.jar spri
+ ng-core-4.1.6.RELEASE.jar aeron-all-1.4.0.jar jboss-logging-3.1.3.GA.
+ jar cuda-platform-9.2-7.1-1.4.2.jar commons-codec-1.10.jar leptonica-
+ 1.76.0-1.4.3-windows-x86_64.jar openblas-0.3.3-1.4.3-linux-armhf.jar 
+ eclipse-collections-api-7.1.2.jar oswego-concurrent-1.3.4.jar play-it
+ eratees_2.11-2.4.8.jar commons-beanutils-1.7.0.jar commons-beanutils-
+ core-1.8.0.jar deeplearning4j-core-1.0.0-beta3.jar akka-cluster_2.11-
+ 2.3.16.jar leveldb-0.5.jar aopalliance-1.0.jar opencv-platform-3.4.3-
+ 1.4.3.jar MalmoJavaJar-0.30.0.jar core-1.1.2.jar libfreenect2-0.2.0-1
+ .4.3.jar spark-graphx_2.11-2.1.0.jar nd4j-buffer-1.0.0-beta3.jar comm
+ ons-io-2.5.jar scala-stm_2.11-0.7.jar akka-remote_2.11-2.3.16.jar cud
+ a-9.2-7.1-1.4.2.jar flandmark-1.07-1.4.3.jar openblas-0.3.3-1.4.3-lin
+ ux-x86_64.jar parquet-encoding-1.8.1.jar nd4j-parameter-server-1.0.0-
+ beta3.jar xml-apis-1.4.01.jar metrics-jvm-3.1.2.jar mkl-dnn-0.16-1.4.
+ 3.jar deeplearning4j-datavec-iterators-1.0.0-beta3.jar metrics-graphi
+ te-3.1.2.jar typetools-0.4.3.jar classmate-1.0.0.jar hdf5-1.10.3-1.4.
+ 3.jar rl4j-gym-1.0.0-beta3.jar common-image-3.1.1.jar ffmpeg-4.0.2-1.
+ 4.3-android-x86.jar reflections-0.9.9.jar curator-client-2.8.0.jar an
+ notations-13.0.jar opencv-3.4.3-1.4.3-android-arm.jar parquet-column-
+ 1.8.1.jar hdf5-platform-1.10.3-1.4.3.jar tomcat-servlet-api-8.0.21.ja
+ r httpmime-4.5.3.jar arrow-memory-0.11.0.jar jackson-datatype-joda-2.
+ 6.5.jar arrow-vector-0.11.0.jar elsa-3.0.0-M5.jar dl4j-spark-paramete
+ rserver_2.11-1.0.0-beta3_spark_2.jar commons-lang-2.6.jar opencv-3.4.
+ 3-1.4.3-linux-armhf.jar leptonica-1.76.0-1.4.3-linux-armhf.jar jersey
+ -server-2.22.2.jar jetty-util-6.1.26.jar javax.annotation-api-1.2.jar
+  opencv-3.4.3-1.4.3-linux-ppc64le.jar hdf5-1.10.3-1.4.3-windows-x86.j
+ ar javacpp-1.4.3.jar artoolkitplus-2.3.1-1.4.3.jar jackson-module-sca
+ la_2.11-2.5.1.jar leptonica-1.76.0-1.4.3-android-x86_64.jar commons-l
+ ang3-3.6.jar avro-ipc-1.7.7.jar minlog-1.3.0.jar threetenbp-1.3.3.jar
+  freemarker-2.3.23.jar scala-parser-combinators_2.11-1.0.1.jar nd4j-c
+ uda-9.2-platform-1.0.0-beta3.jar arpack_combined_all-0.1.jar opencv-3
+ .4.3-1.4.3-android-arm64.jar deeplearning4j-common-1.0.0-beta3.jar ja
+ ckson-datatype-jsr310-2.5.1.jar validation-api-1.1.0.Final.jar nd4j-n
+ ative-1.0.0-beta3-linux-armhf.jar nd4j-parameter-server-node_2.11-1.0
+ .0-beta3.jar pyrolite-4.13.jar jsr305-3.0.2.jar nd4j-native-1.0.0-bet
+ a3-linux-x86_64.jar cloning-1.9.3.jar parquet-jackson-1.8.1.jar deepl
+ earning4j-ui_2.11-1.0.0-beta3.jar nd4j-native-1.0.0-beta3-ios-arm64.j
+ ar spark-tags_2.11-2.1.0.jar common-io-3.1.1.jar javax.ws.rs-api-2.0.
+ jar arrow-format-0.11.0.jar imageio-jpeg-3.1.1.jar json-20160212.jar 
+ imageio-psd-3.1.1.jar rxjava-2.2.0.jar hadoop-mapreduce-client-jobcli
+ ent-2.2.0.jar play-functional_2.11-2.4.8.jar nd4j-arrow-1.0.0-beta3.j
+ ar spark-catalyst_2.11-2.1.0.jar play-netty-utils-2.4.8.jar ale-0.6.0
+ -1.4.3.jar spark-streaming_2.11-2.1.0.jar hppc-0.8.1.jar chill-java-0
+ .8.0.jar scala-compiler-2.11.0.jar hadoop-mapreduce-client-core-2.2.0
+ .jar datavec-hadoop-1.0.0-beta.jar RoaringBitmap-0.5.11.jar openblas-
+ 0.3.3-1.4.3-linux-x86.jar imageio-tiff-3.1.1.jar scala-xml_2.11-1.0.2
+ .jar netty-buffer-4.1.22.Final.jar jta-1.1.jar xmlenc-0.52.jar nd4j-j
+ ackson-1.0.0-beta3.jar metrics-json-3.1.2.jar avro-mapred-1.7.7-hadoo
+ p2.jar spark-launcher_2.11-2.1.0.jar mkl-dnn-0.16-1.4.3-windows-x86_6
+ 4.jar slf4j-log4j12-1.7.16.jar hibernate-validator-5.1.3.Final.jar js
+ on4s-core_2.11-3.2.11.jar leveldbjni-all-1.8.jar nd4j-base64-1.0.0-be
+ ta3.jar libfreenect-0.5.3-1.4.3.jar jersey-common-2.22.2.jar datavec-
+ data-image-1.0.0-beta3.jar deeplearning4j-play_2.11-1.0.0-beta3.jar A
+ grona-0.5.4.jar jackson-databind-2.5.1.jar json4s-ast_2.11-3.2.11.jar
+  shapeless_2.11-2.0.0.jar ffmpeg-4.0.2-1.4.3-linux-x86_64.jar jackson
+ -core-2.5.1.jar ffmpeg-platform-4.0.2-1.4.3.jar commons-net-3.1.jar
+Main-Class: gui.DataPrepareWnd
+

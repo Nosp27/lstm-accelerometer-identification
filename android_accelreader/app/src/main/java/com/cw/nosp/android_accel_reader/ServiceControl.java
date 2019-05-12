@@ -62,8 +62,8 @@ public class ServiceControl {
         service.transmitData();
     }
 
-    public void changeIpAddress(String newAddress){
-        service.changeIp(newAddress);
+    public void changeIpAddress(String newAddress, int newPort){
+        service.changeIp(newAddress, newPort);
     }
 }
 
@@ -71,4 +71,5 @@ interface LogListener {
     void log(String s);
     void onChangedIp();
     void onRunningModeChanged(boolean newRunning);
+    void onDataRecieved(boolean verified);
 }

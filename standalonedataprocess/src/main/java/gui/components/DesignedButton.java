@@ -11,7 +11,7 @@ public class DesignedButton extends JButton {
 
     public DesignedButton(String text){
         super(text);
-        setBackground(Color.DARK_GRAY);
+        setBackground(DesignedPanel.PRIMARY);
         setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
         setForeground(Color.WHITE);
         setFocusPainted(false);
@@ -19,7 +19,7 @@ public class DesignedButton extends JButton {
 
     public DesignedButton(){
         super();
-        setBackground(Color.DARK_GRAY);
+        setBackground(DesignedPanel.PRIMARY);
         setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
         setForeground(Color.WHITE);
         setFocusPainted(false);

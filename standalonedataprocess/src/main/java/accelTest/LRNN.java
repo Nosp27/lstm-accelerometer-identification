@@ -7,7 +7,6 @@ import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.NumberedFileInputSplit;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.LSTM;
@@ -18,13 +17,9 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import org.nd4j.linalg.primitives.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +91,7 @@ public class LRNN {
                 .updater(new Adam())
                 .list()
                 .layer(new LSTM.Builder().activation(Activation.TANH).nIn(3).nOut(midLayers).build())
-                .layer(new LSTM.Builder().activation(Activation.TANH).nOut(midLayers/2).build())
+                .layer(new LSTM.Builder().activation(Activation.TANH).nOut(midLayers / 2).build())
                 .layer(new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
                         .activation(Activation.SOFTMAX).nOut(numLabelClasses).build())
                 .build();
@@ -149,18 +144,25 @@ public class LRNN {
         INDArray out = feedNet0(data);
 
         double result = 0;
+        System.out.println("Size: " + out.size(0));
+        System.out.println("Size: " + out.size(1));
         System.out.println("Size: " + out.size(2));
         for (int i = 0; i < out.size(2); i++) {
             result += out.getDouble(0, 1, i);
         }
         result /= out.size(2);
         System.out.println("feed result: " + result);
-        return result;
+        return out.getDouble(0, 1, out.size(2) - 1);
     }
 
     private INDArray feedNet0(INDArray data) {
-        if (_network == null)
-            return null;
+        if (_network == null) {
+            try {
+                loadNet(new File(ConfigManager.loadProperty("net-out")));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         INDArray output = _network.output(data, true);
         return output;
@@ -191,7 +193,7 @@ public class LRNN {
         } else {
             try {
                 net.loadNet(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\config\\net-out\\Adam_net.nnd"));
-                INDArray in = DataPrepare_ALT.getFeedableData(
+                INDArray in = DataPrepare.getFeedableData(
                         new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\net_in\\e\\features\\1.csv"));
 
                 double out = net.feedNet(in);

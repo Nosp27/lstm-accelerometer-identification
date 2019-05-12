@@ -2,13 +2,12 @@ package gui.trainingFrame;
 
 import accelTest.LRNN;
 import configWork.ConfigManager;
-import gui.DesignControl;
 import gui.components.DesignedButton;
 import gui.components.DesignedLabel;
 import gui.components.DesignedPanel;
+import gui.graph.GraphRender;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import sun.misc.Lock;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,12 +25,13 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
     private JLabel netInfo;
     private int epochNum = 0;
 
+    private GraphRender gr;
+
     JButton resetBtn;
 
     public TrainTab() {
-        super(DesignedPanel.BG);
         setName("Train");
-        setLayout(new BorderLayout(15, 15));
+        setLayout(new BorderLayout(10, 15));
 
         initlayout();
     }
@@ -40,25 +40,21 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
         System.out.println("train tab layout");
         initButtons();
         System.out.println("train tab init buttons complete");
-        JPanel infoPanel = new JPanel(new GridLayout(2, 2, 15, 15));
-        infoPanel.setBackground(Color.DARK_GRAY);
-
+        JPanel infoPanel = new DesignedPanel(BG);
+        infoPanel.setLayout(new GridLayout(2, 2, 15, 15));
         trainingLabel = new DesignedLabel();
-
         statusLabel = new DesignedLabel("Status: disabled");
-
         netInfo = new DesignedLabel("Neural network info");
-
         infoPanel.add(statusLabel);
         infoPanel.add(trainingLabel);
         infoPanel.add(netInfo);
+        infoPanel.add(gr = GraphRender.getBottomTrimmedGraph());
         add(infoPanel, BorderLayout.CENTER);
     }
 
     private void initButtons() {
-        JPanel buttonsHolder = new JPanel();
+        JPanel buttonsHolder = new DesignedPanel(PRIMARY);
         buttonsHolder.setLayout(new BoxLayout(buttonsHolder, BoxLayout.Y_AXIS));
-        DesignControl.setTransparent(buttonsHolder);
 
         //stopBtn
         JButton stopBtn = new DesignedButton("Stop");
@@ -93,11 +89,10 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
                     epochNum = 0;
                     resetBtn.setEnabled(false);
                 }
+                gr.reset();
             }).start();
         });
         resetBtn.setEnabled(new File(net_outPath).exists());
-
-        DesignControl.setTransparent(buttonsHolder);
 
         buttonsHolder.add(trainBtn);
         buttonsHolder.add(Box.createVerticalStrut(10));
@@ -145,6 +140,7 @@ public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
     @Override
     public void onGetStats(Evaluation evaluation) {
         setButtonPanelText(evaluation);
+        gr.addPoint(evaluation.accuracy());
     }
 
     class learningThread extends Thread {

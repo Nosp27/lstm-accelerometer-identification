@@ -1,8 +1,8 @@
 package gui.tabs.serverControlTab;
 
 import accelTest.DataFeeding;
-import gui.DesignControl;
 import gui.components.DesignedButton;
+import gui.components.DesignedPanel;
 import server.ServerWriter;
 
 import javax.swing.*;
@@ -11,10 +11,10 @@ import java.awt.*;
 import java.io.File;
 import java.util.Vector;
 
-public class ServerControlTab extends JPanel implements ServerWriter.ICallbackServer, DataFeeding.DataFeedListener {
+public class ServerControlTab extends DesignedPanel implements ServerWriter.ICallbackServer, DataFeeding.DataFeedListener {
     private JLabel serverInfo;
     private JLabel clientInfo;
-    private DataFeedTab dataFeedTab;
+    private DataFeedPanel dataFeedTab;
 
     private boolean isFeeding = false;
 
@@ -23,22 +23,17 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
     DataFeeding dataFeeder = new DataFeeding();
 
     public ServerControlTab() {
+        super(BG);
         setName("Remote");
         dataFeeder.setListener(this);
         serverDataAccess = ServerWriter.createServer(this);
-
-        DesignControl.setTransparent(this);
         setLayout(new GridLayout(2, 2, 30, 30));
-
-        serverInfo = createLabel(Color.DARK_GRAY, 15, Color.GREEN, this);
-
-        clientInfo = createLabel(Color.DARK_GRAY, 15, Color.WHITE, this);
-
-        dataFeedTab = new DataFeedTab(this::onFileRecieved);
+        serverInfo = createLabel(PRIMARY, 15, Color.WHITE, this);
+        clientInfo = createLabel(PRIMARY, 15, Color.WHITE, this);
+        dataFeedTab = new DataFeedPanel(this::onFileRecieved);
         add(dataFeedTab);
-
+        dataFeedTab.setFeedMode(getFeedingState());
         addFeedSwitch();
-
         startMonitoringData();
     }
 
@@ -53,8 +48,8 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
         label.setFont(new Font("Monospaced", Font.PLAIN, 13));
         label.setForeground(c);
 
-        holder.add(label, SpringLayout.WEST);
-        ct.add(holder);
+        ct.add(label, SpringLayout.WEST);
+//        ct.add(holder);
         return label;
     }
 
@@ -65,6 +60,8 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
 
         JButton feed = new DesignedButton("Recognition mode");
         JButton train = new DesignedButton("Learning mode");
+        train.setBackground(PRIMARY);
+        feed.setBackground(PRIMARY);
         train.setEnabled(false);
 
         feed.addActionListener(e -> feedSwitchActionListener(true, feed, train));
@@ -75,9 +72,11 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
     }
 
     private void feedSwitchActionListener(boolean _feed, JButton feed, JButton train) {
-        isFeeding = _feed;
-        feed.setEnabled(!_feed);
-        train.setEnabled(_feed);
+        synchronized (this) {
+            isFeeding = _feed;
+            feed.setEnabled(!_feed);
+            train.setEnabled(_feed);
+        }
         dataFeedTab.setFeedMode(_feed);
     }
 
@@ -101,18 +100,15 @@ public class ServerControlTab extends JPanel implements ServerWriter.ICallbackSe
 
     @Override
     public void onFileRecieved(File f) {
-        if (isFeeding) {
+        if (getFeedingState()) {
             dataFeeder.feedData(f);
         }
     }
 
     @Override
     public void calculatedResult(Vector<Double> result) {
-        String message;
-        if (result == null) {
-            message = "Error occured during identification process!";
-        } else
-            message = "Calculated: " + result.lastElement();
         dataFeedTab.setResult(result);
+        if (result != null)
+            serverDataAccess.sendResponse(result.lastElement() > .5f);
     }
 }

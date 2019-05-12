@@ -1,16 +1,12 @@
 package com.cw.nosp.android_accel_reader;
 
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import org.w3c.dom.Text;
 
 import java.util.Locale;
 import java.util.Vector;
@@ -26,12 +22,10 @@ public class GUI extends AppCompatActivity implements LogListener {
         this.setTheme(R.style.Theme_AppCompat_DayNight_DarkActionBar);
         setContentView(R.layout.activity_gui);
         (findViewById(R.id.transmit)).setVisibility(View.INVISIBLE);
-
         setStartStopClickListener();
         setEraseClickListener();
         setTransmitClickListener();
         setIpFieldListener();
-
         sc = new ServiceControl();
         sc.initService(this, WriterService.class);
 
@@ -46,13 +40,27 @@ public class GUI extends AppCompatActivity implements LogListener {
             public void onClick(View view) {
                 String newAddr = ((TextView) findViewById(R.id.ip_input)).getText().toString();
                 if (isValidIP(newAddr)) {
-                    sc.changeIpAddress(newAddr);
+                    sc.changeIpAddress(newAddr, getPort(newAddr));
                 }
             }
 
             private boolean isValidIP(final String ip) {
+                String newIp = ip;
+                if (ip.contains(":"))
+                    newIp = ip.substring(0, ip.indexOf(":"));
                 String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
-                return ip.matches(PATTERN);
+                return newIp.matches(PATTERN);
+            }
+
+            private int getPort(final String ip) {
+                if(!ip.contains(":"))
+                    return 0;
+
+                try{
+                    return Integer.parseInt(ip.substring(ip.indexOf(":") + 1));
+                } catch (RuntimeException e){
+                    return 0;
+                }
             }
         });
     }
@@ -71,15 +79,15 @@ public class GUI extends AppCompatActivity implements LogListener {
             };
             (findViewById(R.id.transmit)).post(r);
         } else {
-            String s = "";
-            logQ.add(msg);
-            for (int i = 1; i <= Math.min(logQ.size(), 3); i++)
-                s += logQ.get(logQ.size() - i) + "\n";
-            final String _s = s;
+//            String s = "";
+//            logQ.add(msg);
+//            for (int i = 1; i <= Math.min(logQ.size(), 3); i++)
+//                s += logQ.get(logQ.size() - i) + "\n";
+//            final String _s = s;
             findViewById(R.id.text_pfc).post(new Runnable() {
                 @Override
                 public void run() {
-                    ((TextView) findViewById(R.id.text_pfc)).setText(String.format(Locale.ENGLISH, _s));
+                    ((TextView) findViewById(R.id.text_pfc)).setText(String.format(Locale.ENGLISH, msg));
                 }
             });
         }
@@ -166,6 +174,13 @@ public class GUI extends AppCompatActivity implements LogListener {
                 sc.transmitData();
             }
         });
+    }
+
+    @Override
+    public void onDataRecieved(boolean alright) {
+        if (alright)
+            log("user verified");
+        else log("user changed!!!");
     }
 
     private Thread getLogThread() {

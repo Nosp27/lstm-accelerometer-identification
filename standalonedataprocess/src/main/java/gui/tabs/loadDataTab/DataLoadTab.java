@@ -1,32 +1,24 @@
 package gui.tabs.loadDataTab;
 
-import accelTest.DataPrepare_ALT;
+import accelTest.DataPrepare;
 import configWork.ConfigManager;
 import configWork.ConfigType;
-import gui.DesignControl;
 import gui.components.DesignedButton;
 import gui.components.DesignedLabel;
 import gui.components.DesignedPanel;
-import gui.graph.GraphRender;
-import gui.tabs.loadDataTab.dataLoader.YReader;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-public class DataLoadTab extends JPanel {
-    DataLoaderListener l;
-    File baseDir = new File(ConfigManager.loadProperty("base-dir"));
-    File targetDirectory, targetDirectory2;
-
-    volatile boolean dataLoaded;
-
-    JPanel buttonSide;
-    GraphRender render;
-
+public class DataLoadTab extends DesignedPanel {
+    private DataLoaderListener l;
+    private File baseDir = new File(ConfigManager.loadProperty("base-dir"));
+    private File targetDirectory, targetDirectory2;
+    private volatile boolean dataLoaded;
+    private JPanel buttonSide;
     public boolean isDataLoaded() {
         return dataLoaded;
     }
@@ -42,7 +34,6 @@ public class DataLoadTab extends JPanel {
         setName("Load");
         setLayout(new BorderLayout(10, 20));
         l = ll;
-
         createControls();
 
         add(addStatusPanel(), BorderLayout.CENTER);
@@ -50,14 +41,12 @@ public class DataLoadTab extends JPanel {
 
 
     void createControls() {
-
         //add file chooser
         fileChooser = new JFileChooser(baseDir);
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        //
 
         //add side bar for buttons
-        buttonSide = new JPanel();
+        buttonSide = new DesignedPanel(PRIMARY);
         buttonSide.setLayout(new BoxLayout(buttonSide, BoxLayout.Y_AXIS));
 
         //prepare data button
@@ -79,9 +68,6 @@ public class DataLoadTab extends JPanel {
         resetBtn = new DesignedButton("Reset");
         resetBtn.addActionListener(e -> reset());
         resetBtn.setEnabled(false);
-
-        DesignControl.setTransparent(this);
-        DesignControl.setTransparent(buttonSide);
 
         buttonSide.add(chooseFileBtn);
         buttonSide.add(Box.createVerticalStrut(10));
@@ -114,7 +100,7 @@ public class DataLoadTab extends JPanel {
     }
 
     JPanel addStatusPanel() {
-        JPanel statusPanel = new DesignedPanel(Color.DARK_GRAY);
+        JPanel statusPanel = new DesignedPanel(BG);
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
 
         dataLoadInfoLabels = new ArrayList<>();
@@ -168,7 +154,7 @@ public class DataLoadTab extends JPanel {
             int clusterSize = Integer.parseInt(s_clusterSize);
             float evalRatio = Integer.parseInt(ConfigManager.loadProperty("eval-ratio")) * .01f;
 
-            int[] clusters = DataPrepare_ALT.generateEvalData(0, 1, targetDirectory, targetDirectory2, true);
+            int[] clusters = DataPrepare.generateEvalData(0, 1, targetDirectory, targetDirectory2, true);
             String[] res1 = resultOfDataSeparation(clusters[0], targetDirectory);
 
             String[] res2 = resultOfDataSeparation(clusters[1], targetDirectory2);
@@ -177,7 +163,7 @@ public class DataLoadTab extends JPanel {
                     "Total clusters: " + (clusters[0] + clusters[1]),
                     "Total labels for training: " + (int)((clusters[0] + clusters[1]) * clusterSize * evalRatio),
                     "Total labels for evaluation: " + (int)((clusters[0] + clusters[1]) * clusterSize * (1 - evalRatio)),
-                    "Different files: " + DataPrepare_ALT.getFileNum()
+                    "Different files: " + DataPrepare.getFileNum()
             };
             updateInfoLabels(res1, res2, total);
             reset();
@@ -204,16 +190,6 @@ public class DataLoadTab extends JPanel {
         targetDirectory = null;
         chooseFileBtn.setEnabled(true);
         chooseFileBtn2.setEnabled(false);
-    }
-
-    void drawGraph() {
-        try {
-            YReader yr = new YReader(new File(targetDirectory, "t\\features"));
-            for (int i = 0; i < 5; i++)
-                render.addPoints(yr.readAll());
-        } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
-        }
     }
 
     private void chooseFile(ActionEvent e) {

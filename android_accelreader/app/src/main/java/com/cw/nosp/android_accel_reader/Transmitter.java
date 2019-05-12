@@ -5,5 +5,5 @@ package com.cw.nosp.android_accel_reader;
  */
 public interface Transmitter {
     void transmit(String line);
-    void onChangeIp(String newValidIp);
+    void onChangeIp(String newValidIp, int newPort);
 }

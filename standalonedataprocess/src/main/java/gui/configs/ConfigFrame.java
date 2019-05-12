@@ -1,13 +1,9 @@
 package gui.configs;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -27,7 +23,7 @@ public class ConfigFrame extends JFrame {
         int numberOfProps = 5;
         GridLayout gl = new GridLayout(numberOfProps, 2, 30, 20);
 
-        setContentPane(new DesignedPanel(DesignedPanel.BG2));
+        setContentPane(new DesignedPanel(DesignedPanel.BG));
 
         getContentPane().setLayout(gl);
         createFileChooser("Accelerometer Data Path", "loaded-data", true);
@@ -53,7 +49,7 @@ public class ConfigFrame extends JFrame {
         });
 
         pack();
-
+        setResizable(false);
         if(!haveProperConfigs)
             setVisible(true);
     }

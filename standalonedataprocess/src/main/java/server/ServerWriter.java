@@ -1,10 +1,14 @@
 package server;
 
 import configWork.ConfigManager;
+import sun.rmi.transport.tcp.TCPConnection;
+import sun.rmi.transport.tcp.TCPEndpoint;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Vector;
 
@@ -17,11 +21,14 @@ public class ServerWriter {
     Vector<File> writtenFiles = new Vector<>();
     private IServerDataAccessor serverModelAccessor;
     private ICallbackServer serverListener;
+    private int port;
 
     private ServerWriter() {
         try {
-            ss = new ServerSocket(5000);
+            port = Integer.parseInt(ConfigManager.loadProperty("port"));
+            ss = new ServerSocket(port);
             serverThread.start();
+            responseThread.start();
         } catch (IOException e) {
             ss = null;
         }
@@ -43,6 +50,7 @@ public class ServerWriter {
             return false;
         }
     }
+
 
     //implement and replace
     private void processRequest() {
@@ -119,6 +127,25 @@ public class ServerWriter {
         }
     });
 
+    private final ResponseSyncronizer responseThreadLock = new ResponseSyncronizer(false);
+    Thread responseThread = new Thread(() -> {
+        try {
+            while (true) {
+                synchronized (responseThreadLock) {
+                    responseThreadLock.wait();
+
+                    try {
+                        sendResponse0(responseThreadLock.getState());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+
+        }
+    });
+
     private void initServerModelAccessor() {
         serverModelAccessor = new IServerDataAccessor() {
             @Override
@@ -149,6 +176,14 @@ public class ServerWriter {
                 return writtenFiles;
             }
 
+            @Override
+            public void sendResponse(boolean userChanged) {
+                synchronized (responseThreadLock) {
+                    responseThreadLock.setState(userChanged);
+                    responseThreadLock.notifyAll();
+                }
+            }
+
             private String getServerState() {
                 if (ss == null) return "is null";
                 if (ss.isBound()) return "is bound";
@@ -166,6 +201,16 @@ public class ServerWriter {
         };
     }
 
+    public void sendResponse0(boolean hasChanged) throws IOException {
+        if (clientSocket == null || !(clientSocket.isConnected() && !clientSocket.isClosed()))
+            return;
+        OutputStream out = clientSocket.getOutputStream();
+        String response = "";
+        response += "str\n";
+        response += !hasChanged ? "alright" : "changed" + "\n";
+        out.write(response.getBytes());
+    }
+
     public IServerDataAccessor getModelAccess() {
         if (serverModelAccessor == null)
             initServerModelAccessor();
@@ -178,13 +223,27 @@ public class ServerWriter {
         String getServerInfo();
 
         List<File> getSavedFiles();
+
+        void sendResponse(boolean userChanged);
     }
 
     public interface ICallbackServer {
         void onFileRecieved(File f);
     }
 
-    public static void main(String[] args) {
-        System.out.println(System.currentTimeMillis());
+    private class ResponseSyncronizer {
+        boolean state;
+
+        public ResponseSyncronizer(boolean state) {
+            this.state = state;
+        }
+
+        public synchronized void setState(boolean state) {
+            this.state = state;
+        }
+
+        public synchronized boolean getState() {
+            return state;
+        }
     }
 }

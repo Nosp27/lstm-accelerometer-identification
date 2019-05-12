@@ -217,8 +217,8 @@ public class WriterService extends Service implements DataTransmitter.ClientList
     }
 
     @Override
-    public void onDataRecieved(InputStream in) {
-
+    public void onDataRecieved(boolean alright) {
+        ll.onDataRecieved(alright);
     }
 
     @Override
@@ -226,9 +226,9 @@ public class WriterService extends Service implements DataTransmitter.ClientList
         ll.log(s);
     }
 
-    public void changeIp(String newValidIp) {
+    public void changeIp(String newValidIp, int port) {
         currentIP = newValidIp;
-        dt.onChangeIp(currentIP);
+        dt.onChangeIp(currentIP, port);
         ll.onChangedIp();
     }
     //endregion

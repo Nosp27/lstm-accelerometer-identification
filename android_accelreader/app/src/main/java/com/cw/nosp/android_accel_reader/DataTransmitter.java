@@ -11,6 +11,7 @@ import java.util.Vector;
 public class DataTransmitter implements Transmitter {
     private volatile Socket clientSocket;
     private volatile String ipAddressString;
+    private volatile int port = 5000;
 
     private enum ConnectionState {
         CONNECTED,
@@ -41,6 +42,14 @@ public class DataTransmitter implements Transmitter {
         }
     }, "TT");
 
+    //thread is responsible for data receiving
+    private final Thread receiverThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            rollReceiving();
+        }
+    });
+
     //region runnables for threads
     private void connect() {
         try {
@@ -69,7 +78,7 @@ public class DataTransmitter implements Transmitter {
                 while (isConnected())
                     return true;
 
-                clientSocket = new Socket(ipAddressString, 5000);
+                clientSocket = new Socket(ipAddressString, port);
                 processConnect();
                 return true;
             }
@@ -85,6 +94,9 @@ public class DataTransmitter implements Transmitter {
         c_state = ConnectionState.CONNECTED;
         l.onConnect(this);
         notifyAll();
+        synchronized (receiverThread) {
+            receiverThread.notifyAll();
+        }
     }
 
     private synchronized void processDisconnect() {
@@ -95,6 +107,39 @@ public class DataTransmitter implements Transmitter {
         clientSocket = null;
         l.onDisconnect();
         notifyAll();
+    }
+
+    private void rollReceiving() {
+        try {
+            while (true) {
+                BufferedReader br = null;
+                try {
+                    synchronized (receiverThread) {
+                        if (clientSocket == null)
+                            receiverThread.wait();
+                        br = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        String line = br.readLine();
+                        if (line == null || !line.equals("str"))
+                            throw new IOException();
+
+                        line = br.readLine();
+                        l.onDataRecieved(line.startsWith("alright"));
+                    }
+                } catch (IOException e) {
+                } catch (NullPointerException e) {
+                } finally {
+                    if (br != null) {
+                        try {
+                            br.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+
+        }
     }
 
     private void rollTransmission() {
@@ -151,6 +196,7 @@ public class DataTransmitter implements Transmitter {
         ipAddressString = ip;
         this.l = l;
         connectionThread.start();
+        receiverThread.start();
     }
 
     /**
@@ -175,9 +221,10 @@ public class DataTransmitter implements Transmitter {
     }
 
     @Override
-    public void onChangeIp(String newValidIp) {
+    public void onChangeIp(String newValidIp, int newPort) {
         synchronized (DataTransmitter.this) {
             ipAddressString = newValidIp;
+            port = newPort == 0 ? port : newPort;
             if (isConnected()) {
                 try {
                     clientSocket.close();
@@ -200,7 +247,7 @@ public class DataTransmitter implements Transmitter {
 
         void onDisconnect();
 
-        void onDataRecieved(InputStream in);
+        void onDataRecieved(boolean alright);
 
         void log(String s);
 
@@ -220,8 +267,8 @@ public class DataTransmitter implements Transmitter {
                 }
 
                 @Override
-                public void onDataRecieved(InputStream in) {
-                    System.out.println("received");
+                public void onDataRecieved(boolean bool) {
+                    System.out.println("received: " + (bool ? "ok" : "!ok"));
                 }
 
                 @Override
@@ -241,10 +288,10 @@ public class DataTransmitter implements Transmitter {
                         dt.transmit("C:\\Users\\Nosp\\IdeaProjects\\android_accelreader\\app\\app.iml");
                         break;
                     case "c":
-                        dt.onChangeIp("192.168.1.155");
+                        dt.onChangeIp("192.168.1.155", 0);
                         break;
                     case "cb":
-                        dt.onChangeIp("192.168.1.156");
+                        dt.onChangeIp("192.168.1.156", 0);
                         break;
                 }
             }

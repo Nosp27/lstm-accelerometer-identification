@@ -2,6 +2,5 @@ package configWork;
 
 public enum ConfigType {
     PATH,
-    INT,
-    STRING
+    INT
 }

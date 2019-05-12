@@ -7,22 +7,18 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class YReader {
-    File dir;
-    private double[] mem = new double[3];
+    File file;
     int fileIndex = 0;
 
     public YReader(File file) throws FileNotFoundException {
-        if (!file.isDirectory())
-            throw new IllegalArgumentException();
-
         if (!file.exists())
             throw new FileNotFoundException();
 
-        dir = file;
+        this.file = file;
     }
 
-    private BufferedReader getReader(int i) throws FileNotFoundException {
-        return new BufferedReader(new FileReader(new File(dir, i + ".csv")));
+    private BufferedReader getReader() throws FileNotFoundException {
+        return new BufferedReader(new FileReader(file));
     }
 
     private double readNext(BufferedReader r, int coordNum) throws IOException {
@@ -50,21 +46,17 @@ public class YReader {
     public Collection<Double[]> readAll() {
         ArrayList<Double[]> ds = new ArrayList<>();
         try {
-            BufferedReader r = getReader(fileIndex);
+            BufferedReader r = getReader();
             while (true) {
                 Double[] curr = new Double[3];
                 for (int i = 0; i < 3; i++)
-                    curr[i] = readNext(r, i + 1) + mem[i];
+                    curr[i] = readNext(r, i + 1);
 
                 ds.add(curr);
-
-                for (int i = 0; i < 3; i++)
-                    mem[i] = curr[i];
             }
         } catch (IOException e) {
 
         }
-        fileIndex++;
         System.out.println(ds.size());
         return ds;
     }
