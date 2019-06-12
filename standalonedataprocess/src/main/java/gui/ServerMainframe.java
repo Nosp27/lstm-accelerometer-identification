@@ -18,16 +18,13 @@ import java.util.ArrayList;
 public class ServerMainframe extends JFrame implements DataLoadTab.DataLoaderListener {
 
     //load, train, remote
-    ArrayList<JPanel> tabs;
-
-    File learningDataDirectory;
-
-    ConfigFrame configs;
-    Dimension screen;
-    JPanel holderPanel;
-    CardLayout tabHolder;
-    JPanel mainPanel;
-    JPanel infoPanel;
+    private ArrayList<JPanel> tabs;
+    private ConfigFrame configs;
+    private Dimension screen;
+    private JPanel holderPanel;
+    private CardLayout tabHolder;
+    private JPanel mainPanel;
+    private JPanel infoPanel;
 
     public ServerMainframe() {
         try {
@@ -128,6 +125,6 @@ public class ServerMainframe extends JFrame implements DataLoadTab.DataLoaderLis
 
     @Override
     public void onDataChosen(File _targetDirectory) {
-        learningDataDirectory = _targetDirectory;
+
     }
 }

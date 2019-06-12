@@ -7,6 +7,7 @@ import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.NumberedFileInputSplit;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.LSTM;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
 
 public class LRNN {
@@ -40,25 +42,22 @@ public class LRNN {
     private static File labelsDirTest = new File(baseTestDir, "labels");
 
 
-    int numLabelClasses = 2;
-    int midLayers = 30;
+    private int numLabelClasses = 2;
+    private int midLayers = 30;
 
-    MultiLayerNetwork _network;
-    DataSetIterator trainIter;
-    DataSetIterator evalIter;
+    private MultiLayerNetwork _network;
+    private DataSetIterator trainIter;
+    private DataSetIterator evalIter;
 
     public LRNN() {
         _network = configureNet();
-
-        trainIter = getDataSetIterator(true);
-        evalIter = getDataSetIterator(false);
     }
 
     public MultiLayerNetwork getNet() {
         return _network;
     }
 
-    public DataSetIterator getDataSetIterator(boolean train) {
+    private DataSetIterator getDataSetIterator(boolean train) {
         try {
             // ----- Load the training data -----
             int miniBatchSize = Integer.parseInt(ConfigManager.loadProperty("cluster-size"));
@@ -88,10 +87,10 @@ public class LRNN {
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .seed(123)   //Random number generator seed for improved repeatability. Optional.
                 .weightInit(WeightInit.XAVIER)
-                .updater(new Adam())
+                .updater(new Adam(1e-1))
                 .list()
-                .layer(new LSTM.Builder().activation(Activation.TANH).nIn(3).nOut(midLayers).build())
-                .layer(new LSTM.Builder().activation(Activation.TANH).nOut(midLayers / 2).build())
+                .layer(new LSTM.Builder().nIn(3).nOut(midLayers).build())
+                .layer(new LSTM.Builder().nOut(midLayers / 2).build())
                 .layer(new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
                         .activation(Activation.SOFTMAX).nOut(numLabelClasses).build())
                 .build();
@@ -105,6 +104,8 @@ public class LRNN {
 
     public void trainNet(TrainDataListener l, TrainTab.IStopLearning iStopLearning) {
         // ----- Train the network, evaluating the test set performance at each epoch -----
+        trainIter = getDataSetIterator(true);
+        evalIter = getDataSetIterator(false);
         int nEpochs = 5;
         String str = "gui.Test set evaluation at epoch %d: Accuracy = %.2f";
         for (int i = 0; i < nEpochs && !iStopLearning.stopped(); i++) {
@@ -138,6 +139,10 @@ public class LRNN {
         _network = ModelSerializer.restoreMultiLayerNetwork(netLocation);
     }
 
+    public void loadNet(InputStream netLocation) throws IOException {
+        _network = ModelSerializer.restoreMultiLayerNetwork(netLocation);
+    }
+
     public double feedNet(INDArray data) {
         System.out.println(String.format(Locale.ENGLISH, "{%d, %d, %d}", data.size(0), data.size(1), data.size(2)));
 
@@ -164,43 +169,11 @@ public class LRNN {
             }
         }
 
-        INDArray output = _network.output(data, true);
+        INDArray output = _network.activate(data, Layer.TrainingMode.TEST);
         return output;
     }
 
     public interface TrainDataListener {
         void onGetStats(Evaluation evaluation);
-    }
-
-    public static void main(String[] args) {
-        boolean state = false;
-        LRNN net = new LRNN();
-
-        if (state) {
-            net.trainNet(
-                    new TrainDataListener() {
-                        @Override
-                        public void onGetStats(Evaluation evaluation) {
-
-                        }
-                    },
-                    new TrainTab.IStopLearning() {
-                        @Override
-                        public boolean stopped() {
-                            return false;
-                        }
-                    });
-        } else {
-            try {
-                net.loadNet(new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\config\\net-out\\Adam_net.nnd"));
-                INDArray in = DataPrepare.getFeedableData(
-                        new File("C:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\standalonedataprocess\\resources\\net_in\\e\\features\\1.csv"));
-
-                double out = net.feedNet(in);
-                System.out.println(out);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

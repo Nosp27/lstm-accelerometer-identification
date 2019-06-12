@@ -16,7 +16,10 @@ import android.support.v4.app.NotificationManagerCompat;
 
 import java.io.*;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Vector;
 
 public class WriterService extends Service implements DataTransmitter.ClientListener {
 
@@ -27,8 +30,8 @@ public class WriterService extends Service implements DataTransmitter.ClientList
 
     //server-client connection
     private DataTransmitter dt;
-    private Transmitter transmitter;
-    private String currentIP = "192.168.1.156";
+    private String currentIP = "192.168.1.155";
+    private char transmissionDataType = 'd';
     /////////////////////////////
 
     //notifications
@@ -44,6 +47,8 @@ public class WriterService extends Service implements DataTransmitter.ClientList
     private FileWriter out;
     private BufferedWriter writer;
     private volatile File storage;
+    private Vector<Double[]> buffer = new Vector<>();
+    private int bufferSize = 1000;
     private volatile int fileNum;
     /////////////////////////////
 
@@ -57,11 +62,9 @@ public class WriterService extends Service implements DataTransmitter.ClientList
     private IBinder localBinder = new LocalBinder();
     private boolean bound = false;
     private LogListener ll;
-    /////////////////////////////
 
-    //interface
-    public void setLog(LogListener l) {
-        ll = l;
+    public void setLog(LogListener theActivity) {
+        ll = theActivity;
     }
     /////////////////////////////
 
@@ -125,10 +128,12 @@ public class WriterService extends Service implements DataTransmitter.ClientList
      */
     private void dumpFileData() {
         try {
-            writer.flush();
-            writer.close();
-            out.flush();
-            out.close();
+            if (transmissionDataType == 'f') {
+                writer.flush();
+                writer.close();
+                out.flush();
+                out.close();
+            }
         } catch (IOException e) {
 
         }
@@ -147,7 +152,7 @@ public class WriterService extends Service implements DataTransmitter.ClientList
             initializeAccelerometer();
             captureSensorActivity();
 
-            dt = new DataTransmitter(this, currentIP);
+            dt = new DataTransmitter(this, null);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -178,7 +183,6 @@ public class WriterService extends Service implements DataTransmitter.ClientList
      */
     public synchronized void deleteFiles() {
         suspend();
-
         File baseDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
 
         File[] existing = baseDir.listFiles();
@@ -192,44 +196,42 @@ public class WriterService extends Service implements DataTransmitter.ClientList
      * Method suspends the recording and transmits data to server
      */
     public void transmitData() {
-        if (transmitter == null)
-            return;
-
-        String baseDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
-
-        suspend();
-        for (int i = 0; i < fileNum; i++) {
-            transmitter.transmit(baseDir + File.separator + filename(i));
+//        suspend();
+        if (transmissionDataType == 'f') {
+            String baseDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+            for (int i = 0; i < fileNum; i++) {
+                try {
+                    dt.transmit(new DataMap(new File(baseDir + File.separator + filename(i))));
+                } catch (IOException e) {
+                }
+            }
+        } else {
+            dt.transmit(new DataMap(buffer));
+            buffer.clear();
         }
     }
 
     //region server listener
     @Override
     public void onConnect(Transmitter t) {
-        transmitter = t;
-        ll.log("connection established");
+        if (transmissionDataType == 'f')
+            ll.log("connection established");
     }
 
     @Override
     public void onDisconnect() {
-        transmitter = null;
-        ll.log("connection lost");
+        if (transmissionDataType == 'f')
+            ll.log("connection lost");
     }
 
     @Override
-    public void onDataRecieved(boolean alright) {
-        ll.onDataRecieved(alright);
+    public void onDataRecieved(boolean alright, float p) {
+        ll.onDataRecieved(alright, p);
     }
 
     @Override
     public void log(String s) {
         ll.log(s);
-    }
-
-    public void changeIp(String newValidIp, int port) {
-        currentIP = newValidIp;
-        dt.onChangeIp(currentIP, port);
-        ll.onChangedIp();
     }
     //endregion
 
@@ -362,13 +364,21 @@ public class WriterService extends Service implements DataTransmitter.ClientList
         if (!running)
             return;
 
-        for (int i = 0; i < data.length; ++i) {
-            writer.append(Float.toString(data[i]));
-            if (i < data.length - 1)
-                writer.append(",");
+        if (transmissionDataType == 'f') {
+            for (int i = 0; i < data.length; ++i) {
+                writer.append(Float.toString(data[i]));
+                if (i < data.length - 1)
+                    writer.append(",");
+            }
+            writer.append("\n");
+            writer.flush();
+        } else {
+            buffer.add(new Double[]{(double) data[0], (double) data[1], (double) data[2]});
+            if (buffer.size() >= bufferSize)
+                transmitData();
+            if (ll != null)
+                ll.onDataRecorded((buffer.size() * 1.0f) / bufferSize);
         }
-        writer.append("\n");
-        writer.flush();
     }
 
     /**

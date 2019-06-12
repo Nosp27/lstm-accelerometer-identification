@@ -1,12 +1,12 @@
 package com.cw.nosp.android_accel_reader;
 
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.*;
 
 import java.util.Locale;
 import java.util.Vector;
@@ -22,80 +22,25 @@ public class GUI extends AppCompatActivity implements LogListener {
         this.setTheme(R.style.Theme_AppCompat_DayNight_DarkActionBar);
         setContentView(R.layout.activity_gui);
         (findViewById(R.id.transmit)).setVisibility(View.INVISIBLE);
+        (findViewById(R.id.verdict)).setVisibility(View.INVISIBLE);
+        (findViewById(R.id.ratingBar)).setVisibility(View.INVISIBLE);
         setStartStopClickListener();
         setEraseClickListener();
         setTransmitClickListener();
-        setIpFieldListener();
         sc = new ServiceControl();
         sc.initService(this, WriterService.class);
 
         getLogThread().start();
     }
 
-    private void setIpFieldListener() {
-        ((EditText) findViewById(R.id.ip_input)).setText("192.168.1.156");
-        final Button ipButton = findViewById(R.id.changeIPBtn);
-        ipButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String newAddr = ((TextView) findViewById(R.id.ip_input)).getText().toString();
-                if (isValidIP(newAddr)) {
-                    sc.changeIpAddress(newAddr, getPort(newAddr));
-                }
-            }
-
-            private boolean isValidIP(final String ip) {
-                String newIp = ip;
-                if (ip.contains(":"))
-                    newIp = ip.substring(0, ip.indexOf(":"));
-                String PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
-                return newIp.matches(PATTERN);
-            }
-
-            private int getPort(final String ip) {
-                if(!ip.contains(":"))
-                    return 0;
-
-                try{
-                    return Integer.parseInt(ip.substring(ip.indexOf(":") + 1));
-                } catch (RuntimeException e){
-                    return 0;
-                }
-            }
-        });
-    }
-
-    Vector<String> logQ = new Vector<>();
-
     @Override
     public void log(final String msg) {
-        if (msg.startsWith("connection")) {
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    (findViewById(R.id.transmit)).setVisibility(msg.endsWith("established") ? View.VISIBLE : View.INVISIBLE);
-                    ((TextView) findViewById(R.id.net_debug)).setText(msg);
-                }
-            };
-            (findViewById(R.id.transmit)).post(r);
-        } else {
-//            String s = "";
-//            logQ.add(msg);
-//            for (int i = 1; i <= Math.min(logQ.size(), 3); i++)
-//                s += logQ.get(logQ.size() - i) + "\n";
-//            final String _s = s;
-            findViewById(R.id.text_pfc).post(new Runnable() {
-                @Override
-                public void run() {
-                    ((TextView) findViewById(R.id.text_pfc)).setText(String.format(Locale.ENGLISH, msg));
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onChangedIp() {
-        ((TextView) findViewById(R.id.net_debug)).setText("ip changed");
+        findViewById(R.id.text_pfc).post(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(R.id.text_pfc)).setText(String.format(Locale.ENGLISH, msg));
+            }
+        });
     }
 
     @Override
@@ -177,10 +122,30 @@ public class GUI extends AppCompatActivity implements LogListener {
     }
 
     @Override
-    public void onDataRecieved(boolean alright) {
-        if (alright)
-            log("user verified");
-        else log("user changed!!!");
+    public void onDataRecieved(final boolean alright, final float precision) {
+        final String msg = String.format("P: %.2f", precision);
+        findViewById(R.id.verdict).post(new Runnable() {
+            @Override
+            public void run() {
+                (findViewById(R.id.verdict)).setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.verdict)).setText(String.format(Locale.ENGLISH, msg.substring(msg.indexOf(":") + 1)));
+                (findViewById(R.id.ratingBar)).setVisibility(View.VISIBLE);
+                if (alright) {
+                    (((RatingBar) findViewById(R.id.ratingBar))).setRating(precision * 5);
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void onDataRecorded(final float ratio) {
+        (findViewById(R.id.progressBar)).post(new Runnable() {
+            @Override
+            public void run() {
+                ((ProgressBar) findViewById(R.id.progressBar)).setProgress((int) (ratio * 1000));
+            }
+        });
     }
 
     private Thread getLogThread() {

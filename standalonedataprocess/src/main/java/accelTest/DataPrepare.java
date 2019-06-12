@@ -274,11 +274,32 @@ public class DataPrepare {
         }
     }
 
+    @SuppressWarnings("Duplicates")
     public static INDArray getFeedableData(File f) throws IOException {
         long linesCount = DataPrepare.countLines(f, false);
 
         INDArray data = Nd4j.zeros(1, 3, linesCount);
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String line;
+            int i = 0;
+            while (i < linesCount) {
+                line = br.readLine();
+                Scanner sc = new Scanner(line);
+                sc.useLocale(Locale.ENGLISH);
+                sc.useDelimiter(",");
+                for (int k = 0; k < 3; k++)
+                    data.putScalar(i , k, i , sc.nextDouble());
+                i++;
+                sc.close();
+            }
+        }
+        return data;
+    }
+
+    @SuppressWarnings("Duplicates")
+    public static INDArray getFeedableData(Reader reader, int linesCount) throws IOException {
+        INDArray data = Nd4j.zeros(1, 3, linesCount);
+        try (BufferedReader br = new BufferedReader(reader)) {
             String line;
             int i = 0;
             while (i < linesCount) {

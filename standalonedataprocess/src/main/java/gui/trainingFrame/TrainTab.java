@@ -17,17 +17,13 @@ import java.io.IOException;
 public class TrainTab extends DesignedPanel implements LRNN.TrainDataListener {
 
     private final Boolean netLock = true;//sync object
-    volatile LRNN net;
-    volatile boolean netCleared;
-
+    private volatile LRNN net;
     private JLabel trainingLabel;
     private JLabel statusLabel;
     private JLabel netInfo;
     private int epochNum = 0;
-
     private GraphRender gr;
-
-    JButton resetBtn;
+    private JButton resetBtn;
 
     public TrainTab() {
         setName("Train");

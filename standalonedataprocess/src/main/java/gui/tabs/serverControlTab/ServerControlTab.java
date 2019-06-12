@@ -19,8 +19,8 @@ public class ServerControlTab extends DesignedPanel implements ServerWriter.ICal
     private boolean isFeeding = false;
 
 
-    ServerWriter.IServerDataAccessor serverDataAccess;
-    DataFeeding dataFeeder = new DataFeeding();
+    private ServerWriter.IServerDataAccessor serverDataAccess;
+    private DataFeeding dataFeeder = new DataFeeding();
 
     public ServerControlTab() {
         super(BG);

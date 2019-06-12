@@ -174,5 +174,5 @@ Class-Path: spark-unsafe_2.11-2.1.0.jar hadoop-yarn-api-2.2.0.jar lept
  grona-0.5.4.jar jackson-databind-2.5.1.jar json4s-ast_2.11-3.2.11.jar
   shapeless_2.11-2.0.0.jar ffmpeg-4.0.2-1.4.3-linux-x86_64.jar jackson
  -core-2.5.1.jar ffmpeg-platform-4.0.2-1.4.3.jar commons-net-3.1.jar
-Main-Class: gui.DataPrepareWnd
+Main-Class: gui.ServerMainframe
 

@@ -15,7 +15,7 @@ import gui.components.DesignedPanel;
 import gui.components.DesignedSlider;
 
 public class ConfigFrame extends JFrame {
-    ArrayList<JLabel> labels = new ArrayList<>();
+    private ArrayList<JLabel> labels = new ArrayList<>();
 
     public ConfigFrame() {
         boolean haveProperConfigs = ConfigManager.check();

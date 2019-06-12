@@ -40,7 +40,7 @@ public class DesignedPanel extends JPanel {
         g.drawImage(img, 0, 0, w, h, null);
     }
 
-    public static Image getBackgroundImage(String path){
+    private static Image getBackgroundImage(String path){
         Image img;
         try {
             img = ImageIO.read(DesignedPanel.class.getResourceAsStream(path));

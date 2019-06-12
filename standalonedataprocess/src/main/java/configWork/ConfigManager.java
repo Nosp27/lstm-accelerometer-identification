@@ -1,6 +1,7 @@
 package configWork;
 
 import gui.configs.ConfigFrame;
+import scala.sys.Prop;
 
 import java.io.*;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class ConfigManager {
     }
 
     public static String loadProperty(String name){
-        if(properties == null)
+        if(properties == null || !properties.containsKey(name))
             configLoad();
 
         System.out.println("Get property " + name);
@@ -70,6 +71,11 @@ public class ConfigManager {
                 String line;
                 while ((line = in.readLine())!= null)
                     out.write((line + "\n").getBytes());
+
+                configLoad();
+                for(Property p : properties.values())
+                    if(p.type == ConfigType.PATH)
+                        new File(p.value).mkdirs();
             }
         } catch (Throwable e) {
             e.printStackTrace();

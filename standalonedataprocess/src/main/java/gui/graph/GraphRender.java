@@ -16,11 +16,6 @@ public class GraphRender extends JPanel {
     private Vector<Double> ys = new Vector<>();
     private float interval = 6;
     private int firstPoint = 0;
-
-    private int offsetX = 60;
-    private int offsetY = 10;
-    private int storedX = 0;
-
     private double zoomStep = 10;
     private int intervalOverride = 0;
 
@@ -48,7 +43,7 @@ public class GraphRender extends JPanel {
         return gr;
     }
 
-    public GraphRender(boolean suppressListening) {
+    private GraphRender(boolean suppressListening) {
         this.suppressListening = suppressListening;
         setFocusable(!suppressListening);
         setBackground(Color.darkGray);
@@ -61,7 +56,7 @@ public class GraphRender extends JPanel {
         repaint();
     }
 
-    public synchronized void shiftRight(int x) {
+    private synchronized void shiftRight(int x) {
         if (firstPoint + x > 0) {
             if (firstPoint + x <= ys.size() - getWidth() / interval)
                 firstPoint += x;
@@ -70,7 +65,7 @@ public class GraphRender extends JPanel {
         repaint();
     }
 
-    public void changeInterval(int delta) {
+    private void changeInterval(int delta) {
         float _delta = delta / 3f;
         if (interval + _delta < 80 && interval + _delta >= 1)
             interval += _delta;
@@ -131,6 +126,8 @@ public class GraphRender extends JPanel {
 
         Dimension screen = this.getSize();
 
+        int offsetX = 60;
+        int offsetY = 10;
         int left = offsetX,
                 up = offsetY,
                 right = screen.width - offsetX,
@@ -164,7 +161,8 @@ public class GraphRender extends JPanel {
                 g.setColor(lineColor);
                 g.drawLine(currentX, startPointY - y0, currentX + (int) interval, startPointY - y1);
             }
-            if (storedX > 1) {
+        int storedX = 0;
+        if (storedX > 1) {
                 int _oval_y = y(storedX - 1, height);
 
                 g.setColor(lineColor);
@@ -201,11 +199,11 @@ public class GraphRender extends JPanel {
         }
     }
 
-    public int y(int i, int height) {
+    private int y(int i, int height) {
         return (int) (height * ys.get(i) / maxDeviation);
     }
 
-    public void zoom(int n) {
+    private void zoom(int n) {
         if (maxDeviation + zoomStep * n > 1)
             maxDeviation += zoomStep * n;
         repaint();

@@ -5,28 +5,23 @@ import sun.rmi.transport.tcp.TCPConnection;
 import sun.rmi.transport.tcp.TCPEndpoint;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
 public class ServerWriter {
-    ServerSocket ss;
-    Socket clientSocket;
-
-    int fileCounter = 0;
-
-    Vector<File> writtenFiles = new Vector<>();
+    private ServerSocket ss;
+    private Socket clientSocket;
+    private int fileCounter = 0;
+    private Vector<File> writtenFiles = new Vector<>();
     private IServerDataAccessor serverModelAccessor;
     private ICallbackServer serverListener;
-    private int port;
 
     private ServerWriter() {
         try {
-            port = Integer.parseInt(ConfigManager.loadProperty("port"));
-            ss = new ServerSocket(port);
+            int port = Integer.parseInt(ConfigManager.loadProperty("port"));
+            ss = new ServerSocket(port, 1);
             serverThread.start();
             responseThread.start();
         } catch (IOException e) {
@@ -111,7 +106,7 @@ public class ServerWriter {
         return sw.getModelAccess();
     }
 
-    Thread serverThread = new Thread(() -> {
+    private Thread serverThread = new Thread(() -> {
 
         try {
             while (true) {
@@ -128,7 +123,7 @@ public class ServerWriter {
     });
 
     private final ResponseSyncronizer responseThreadLock = new ResponseSyncronizer(false);
-    Thread responseThread = new Thread(() -> {
+    private Thread responseThread = new Thread(() -> {
         try {
             while (true) {
                 synchronized (responseThreadLock) {
@@ -166,6 +161,20 @@ public class ServerWriter {
                 s += "Server" + newline;
                 s += "State: " + getServerState() + newline;
                 s += "Connection: " + getConnectionState() + newline;
+
+                try {
+                    Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+                    while (e.hasMoreElements()) {
+                        Enumeration<InetAddress> ee = e.nextElement().getInetAddresses();
+                        while (ee.hasMoreElements()) {
+                            InetAddress addr = ee.nextElement();
+                            if (addr.getAddress().length == 4)
+                                s += "IP: " + addr.getHostAddress() + newline;
+                        }
+                    }
+                } catch (SocketException e) {
+                }
+
                 s += "Last file located: " + (fileCounter) + ".csv" + newline;
                 s += "</html>";
                 return s;
@@ -211,7 +220,7 @@ public class ServerWriter {
         out.write(response.getBytes());
     }
 
-    public IServerDataAccessor getModelAccess() {
+    private IServerDataAccessor getModelAccess() {
         if (serverModelAccessor == null)
             initServerModelAccessor();
         return serverModelAccessor;

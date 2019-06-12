@@ -15,20 +15,12 @@ import java.util.ArrayList;
 
 public class DataLoadTab extends DesignedPanel {
     private DataLoaderListener l;
-    private File baseDir = new File(ConfigManager.loadProperty("base-dir"));
     private File targetDirectory, targetDirectory2;
-    private volatile boolean dataLoaded;
-    private JPanel buttonSide;
-    public boolean isDataLoaded() {
-        return dataLoaded;
-    }
-
-    JButton prepareBtn;
-    JButton resetBtn;
-    JButton chooseFileBtn, chooseFileBtn2;
-    ArrayList<JLabel> dataLoadInfoLabels;
-
-    JFileChooser fileChooser;
+    private JButton prepareBtn;
+    private JButton resetBtn;
+    private JButton chooseFileBtn, chooseFileBtn2;
+    private ArrayList<JLabel> dataLoadInfoLabels;
+    private JFileChooser fileChooser;
 
     public DataLoadTab(DataLoaderListener ll) {
         setName("Load");
@@ -39,14 +31,14 @@ public class DataLoadTab extends DesignedPanel {
         add(addStatusPanel(), BorderLayout.CENTER);
     }
 
-
     void createControls() {
+        File baseDir = new File(ConfigManager.loadProperty("base-dir"));
         //add file chooser
         fileChooser = new JFileChooser(baseDir);
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         //add side bar for buttons
-        buttonSide = new DesignedPanel(PRIMARY);
+        JPanel buttonSide = new DesignedPanel(PRIMARY);
         buttonSide.setLayout(new BoxLayout(buttonSide, BoxLayout.Y_AXIS));
 
         //prepare data button
@@ -99,7 +91,7 @@ public class DataLoadTab extends DesignedPanel {
         c.add(jb);//add btn
     }
 
-    JPanel addStatusPanel() {
+    private JPanel addStatusPanel() {
         JPanel statusPanel = new DesignedPanel(BG);
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
 
@@ -117,7 +109,7 @@ public class DataLoadTab extends DesignedPanel {
         return statusPanel;
     }
 
-    void updateInfoLabels(String[] lines0, String[] lines1, String[] lines2) {
+    private void updateInfoLabels(String[] lines0, String[] lines1, String[] lines2) {
         String dir1 = targetDirectory == null ? "undefined" : ".../" + targetDirectory.getName();
         String dir2 = targetDirectory2 == null ? "undefined" : ".../" + targetDirectory2.getName();
         String s = "<html>";
@@ -184,7 +176,7 @@ public class DataLoadTab extends DesignedPanel {
         };
     }
 
-    void reset() {
+    private void reset() {
         resetBtn.setEnabled(false);
         prepareBtn.setEnabled(false);
         targetDirectory = null;

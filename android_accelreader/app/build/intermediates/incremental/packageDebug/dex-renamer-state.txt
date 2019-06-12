@@ -1,4 +1,4 @@
-#Sun May 12 16:38:22 GMT+03:00 2019
-base.0=C\:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\android_accelreader\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\1f\\main
+#Wed May 22 14:20:46 GMT+03:00 2019
+base.0=C\:\\Users\\Nosp\\IdeaProjects\\lstm-accelerometer-identification\\android_accelreader\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\1f\\main
 renamed.0=classes.dex
-file.0=C\:\\Users\\Nosp\\IdeaProjects\\NetworkTest\\android_accelreader\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\1f\\main\\classes.dex
+file.0=C\:\\Users\\Nosp\\IdeaProjects\\lstm-accelerometer-identification\\android_accelreader\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\1f\\main\\classes.dex

@@ -1526,7 +1526,7 @@ containing a value of this type.
 <tr><th>Constant</th><th>Value</th><th>Description</th></tr>
 <tr><td><code>none</code></td><td>0</td><td></td></tr>
 <tr><td><code>standard</code></td><td>7</td><td></td></tr>
-<tr><td><code>direct</code></td><td>1</td><td> direct, barriers, chains </td></tr>
+<tr><td><code>direct</code></td><td>1</td><td></td></tr>
 <tr><td><code>barrier</code></td><td>2</td><td></td></tr>
 <tr><td><code>chains</code></td><td>4</td><td></td></tr>
 <tr><td><code>dimensions</code></td><td>8</td><td></td></tr>
@@ -2676,23 +2676,24 @@ containing a value of this type.
         public static final int abc_textfield_search_default_mtrl_alpha=0x7f020050;
         public static final int abc_textfield_search_material=0x7f020051;
         public static final int abc_vector_test=0x7f020052;
-        public static final int ic_launcher_background=0x7f020053;
-        public static final int ic_launcher_foreground=0x7f020054;
-        public static final int ic_launcher_foreground_1=0x7f020063;
-        public static final int notification_action_background=0x7f020055;
-        public static final int notification_bg=0x7f020056;
-        public static final int notification_bg_low=0x7f020057;
-        public static final int notification_bg_low_normal=0x7f020058;
-        public static final int notification_bg_low_pressed=0x7f020059;
-        public static final int notification_bg_normal=0x7f02005a;
-        public static final int notification_bg_normal_pressed=0x7f02005b;
-        public static final int notification_icon_background=0x7f02005c;
-        public static final int notification_template_icon_bg=0x7f020061;
-        public static final int notification_template_icon_low_bg=0x7f020062;
-        public static final int notification_tile_bg=0x7f02005d;
-        public static final int notify_panel_notification_icon_bg=0x7f02005e;
-        public static final int tooltip_frame_dark=0x7f02005f;
-        public static final int tooltip_frame_light=0x7f020060;
+        public static final int circle=0x7f020053;
+        public static final int ic_launcher_background=0x7f020054;
+        public static final int ic_launcher_foreground=0x7f020055;
+        public static final int ic_launcher_foreground_1=0x7f020064;
+        public static final int notification_action_background=0x7f020056;
+        public static final int notification_bg=0x7f020057;
+        public static final int notification_bg_low=0x7f020058;
+        public static final int notification_bg_low_normal=0x7f020059;
+        public static final int notification_bg_low_pressed=0x7f02005a;
+        public static final int notification_bg_normal=0x7f02005b;
+        public static final int notification_bg_normal_pressed=0x7f02005c;
+        public static final int notification_icon_background=0x7f02005d;
+        public static final int notification_template_icon_bg=0x7f020062;
+        public static final int notification_template_icon_low_bg=0x7f020063;
+        public static final int notification_tile_bg=0x7f02005e;
+        public static final int notify_panel_notification_icon_bg=0x7f02005f;
+        public static final int tooltip_frame_dark=0x7f020060;
+        public static final int tooltip_frame_light=0x7f020061;
     }
     public static final class id {
         public static final int ALT=0x7f0b003a;
@@ -2732,7 +2733,6 @@ containing a value of this type.
         public static final int buttonPanel=0x7f0b004e;
         public static final int cancel_action=0x7f0b0082;
         public static final int chains=0x7f0b001d;
-        public static final int changeIPBtn=0x7f0b0079;
         public static final int checkbox=0x7f0b005e;
         public static final int chronometer=0x7f0b008a;
         public static final int collapseActionView=0x7f0b0041;
@@ -2761,7 +2761,6 @@ containing a value of this type.
         public static final int image=0x7f0b004a;
         public static final int info=0x7f0b008b;
         public static final int invisible=0x7f0b0015;
-        public static final int ip_input=0x7f0b007d;
         public static final int italic=0x7f0b0037;
         public static final int left=0x7f0b0010;
         public static final int line1=0x7f0b0005;
@@ -2772,7 +2771,6 @@ containing a value of this type.
         public static final int message=0x7f0b0091;
         public static final int middle=0x7f0b0039;
         public static final int multiply=0x7f0b002c;
-        public static final int net_debug=0x7f0b0078;
         public static final int never=0x7f0b0043;
         public static final int none=0x7f0b0021;
         public static final int normal=0x7f0b0024;
@@ -2783,9 +2781,11 @@ containing a value of this type.
         public static final int parent=0x7f0b0016;
         public static final int parentPanel=0x7f0b0050;
         public static final int percent=0x7f0b0017;
+        public static final int progressBar=0x7f0b007c;
         public static final int progress_circular=0x7f0b0007;
         public static final int progress_horizontal=0x7f0b0008;
         public static final int radio=0x7f0b0060;
+        public static final int ratingBar=0x7f0b007d;
         public static final int right=0x7f0b0011;
         public static final int right_icon=0x7f0b008c;
         public static final int right_side=0x7f0b0088;
@@ -2826,7 +2826,7 @@ containing a value of this type.
         public static final int text2=0x7f0b000b;
         public static final int textSpacerNoButtons=0x7f0b0055;
         public static final int textSpacerNoTitle=0x7f0b0054;
-        public static final int textView2=0x7f0b007c;
+        public static final int textView2=0x7f0b007b;
         public static final int text_pfc=0x7f0b0076;
         public static final int time=0x7f0b0089;
         public static final int title=0x7f0b000c;
@@ -2834,10 +2834,11 @@ containing a value of this type.
         public static final int title_template=0x7f0b005a;
         public static final int top=0x7f0b0013;
         public static final int topPanel=0x7f0b0059;
-        public static final int transmit=0x7f0b007b;
+        public static final int transmit=0x7f0b0079;
         public static final int uniform=0x7f0b0032;
         public static final int up=0x7f0b000d;
         public static final int useLogo=0x7f0b002b;
+        public static final int verdict=0x7f0b0078;
         public static final int withText=0x7f0b0044;
         public static final int wrap=0x7f0b0019;
         public static final int wrap_content=0x7f0b0033;
@@ -7237,7 +7238,7 @@ containing a value of this type.
 <tr><th>Constant</th><th>Value</th><th>Description</th></tr>
 <tr><td><code>none</code></td><td>0</td><td></td></tr>
 <tr><td><code>standard</code></td><td>7</td><td></td></tr>
-<tr><td><code>direct</code></td><td>1</td><td> direct, barriers, chains </td></tr>
+<tr><td><code>direct</code></td><td>1</td><td></td></tr>
 <tr><td><code>barrier</code></td><td>2</td><td></td></tr>
 <tr><td><code>chains</code></td><td>4</td><td></td></tr>
 <tr><td><code>dimensions</code></td><td>8</td><td></td></tr>

@@ -7,8 +7,7 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class YReader {
-    File file;
-    int fileIndex = 0;
+    private File file;
 
     public YReader(File file) throws FileNotFoundException {
         if (!file.exists())
